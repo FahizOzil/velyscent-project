@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { productsData } from "@/lib/productsData";
+import { useCartStore } from "@/store/cartStore";
 
 // ─── Mock product data ────────────────────────────────────────────────
 const product = {
@@ -46,6 +47,8 @@ function Stars({ rating, size = 16 }) {
 export default function ProductDetailsTop({ slug }) {
   const product = productsData[slug]; // ← move to TOP before all hooks
 
+
+  const { addToCart } = useCartStore();
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [qty, setQty] = useState(1);
   const [wished, setWished] = useState(false);
@@ -67,9 +70,17 @@ export default function ProductDetailsTop({ slug }) {
   );
 
   const handleAddToBag = () => {
-    setAddedToBag(true);
-    setTimeout(() => setAddedToBag(false), 2000);
-  };
+  addToCart({
+    slug: slug,
+    name: product.name,
+    price: product.price,
+    volume: product.variants[selectedVariant]?.volume || "100 ml",
+    variant: product.variants[selectedVariant]?.volume || "100 ml",
+    // img: product.img,
+  });
+  setAddedToBag(true);
+  setTimeout(() => setAddedToBag(false), 2000);
+};
 
   return (
     <>
