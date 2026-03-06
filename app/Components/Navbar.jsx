@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useCartStore } from "@/store/cartStore";
+import { useWishlistStore } from "@/store/wishlistStore";
+import { useSearchStore } from "@/store/searchStore";
 
 // ─── Icons ────────────────────────────────────────────────────────────
 const SearchIcon = () => (
@@ -57,8 +59,13 @@ export default function Navbar() {
   const [userDropOpen, setUserDropOpen] = useState(false);
   const userDropRef = useRef(null);
 
+  const { items: wishlistItems } = useWishlistStore();
+const wishlistCount = wishlistItems.length;
+
   const { items } = useCartStore();
 const cartCount = items.reduce((sum, i) => sum + i.qty, 0);
+
+const { openSearch } = useSearchStore();
 
   // Close user dropdown when clicking outside
   useEffect(() => {
@@ -145,7 +152,7 @@ const cartCount = items.reduce((sum, i) => sum + i.qty, 0);
         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
 
           {/* Search */}
-          <button className="nav-icon-btn" style={{
+          <button className="nav-icon-btn" onClick={openSearch} style={{
             background: "none", border: "none",
             color: "rgba(255,255,255,0.8)", cursor: "pointer",
             padding: "4px", display: "flex", alignItems: "center",
@@ -280,12 +287,25 @@ const cartCount = items.reduce((sum, i) => sum + i.qty, 0);
 
           {/* Wishlist */}
           <Link href="/wishlist" className="nav-icon-btn" style={{
-            background: "none", border: "none",
-            color: "rgba(255,255,255,0.8)", cursor: "pointer",
-            padding: "4px", display: "flex", alignItems: "center",
-            transition: "color 0.2s", textDecoration: "none",
-          }}>
-            <HeartIcon />
+  background: "none", border: "none",
+  color: "rgba(255,255,255,0.8)", cursor: "pointer",
+  padding: "4px", display: "flex", alignItems: "center",
+  transition: "color 0.2s", textDecoration: "none",
+  position: "relative",  // ✅ this one line fixes it
+}}>
+  <HeartIcon />
+  {wishlistCount > 0 && (
+    <span style={{
+      position: "absolute", top: "-4px", right: "-4px",
+      background: "#C4914F", borderRadius: "50%",
+      width: "16px", height: "16px",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "'Jost',sans-serif", fontSize: "9px",
+      fontWeight: 600, color: "#fff",
+    }}>
+      {wishlistCount}
+    </span>
+  )}
           </Link>
 
           {/* Cart / Bag */}

@@ -2,32 +2,7 @@
 import { useState } from "react";
 import { productsData } from "@/lib/productsData";
 import { useCartStore } from "@/store/cartStore";
-
-// ─── Mock product data ────────────────────────────────────────────────
-const product = {
-  "luxurious-elixir": {
-    name: "Luxurious Elixir",
-    price: "250.00",
-    rating: 5,
-    reviews: 80,
-    description: "Step into a world of unparalleled opulence...",
-    variants: [
-      { id: 1, volume: "100 ml" },
-      { id: 2, volume: "150 ml" },
-    ],
-  },
-  "golden-legacy": {
-    name: "The Golden Legacy",
-    price: "160.00",
-    rating: 4,
-    reviews: 170,
-    description: "A timeless classic...",
-    variants: [
-      { id: 1, volume: "100 ml" },
-    ],
-  },
-  // add new products here anytime ✅
-};
+import { useWishlistStore } from "@/store/wishlistStore";
 
 // ─── Star Rating ──────────────────────────────────────────────────────
 function Stars({ rating, size = 16 }) {
@@ -43,19 +18,24 @@ function Stars({ rating, size = 16 }) {
   );
 }
 
-// ─── Product Details Top Section ──────────────────────────────────────
+// ─── Product Details Top ──────────────────────────────────────────────
 export default function ProductDetailsTop({ slug }) {
-  const product = productsData[slug]; // ← move to TOP before all hooks
 
+  // ✅ Step 1 — get product from central data (no duplicate object)
+  const product = productsData[slug];
 
+  // ✅ Step 2 — cart + wishlist stores
   const { addToCart } = useCartStore();
+  const { toggleWishlist, isWishlisted } = useWishlistStore();
+
+  // ✅ Step 3 — all hooks together
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [qty, setQty] = useState(1);
-  const [wished, setWished] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [addedToBag, setAddedToBag] = useState(false);
 
-   if (!product) return (
+  // ✅ Step 4 — early return AFTER all hooks
+  if (!product) return (
     <div style={{
       color: "rgba(255,255,255,0.5)",
       textAlign: "center",
@@ -69,18 +49,34 @@ export default function ProductDetailsTop({ slug }) {
     </div>
   );
 
+  // ✅ Wishlist state comes from store — not local useState
+  const wished = isWishlisted(slug);
+
+  // ✅ Add to bag with qty support
   const handleAddToBag = () => {
-  addToCart({
-    slug: slug,
-    name: product.name,
-    price: product.price,
-    volume: product.variants[selectedVariant]?.volume || "100 ml",
-    variant: product.variants[selectedVariant]?.volume || "100 ml",
-    // img: product.img,
-  });
-  setAddedToBag(true);
-  setTimeout(() => setAddedToBag(false), 2000);
-};
+    addToCart({
+      slug,
+      name: product.name,
+      price: product.price,
+      variant: product.variants[selectedVariant]?.volume || "100 ml",
+      volume: product.variants[selectedVariant]?.volume || "100 ml",
+      qty,
+      // img: product.img,
+    });
+    setAddedToBag(true);
+    setTimeout(() => setAddedToBag(false), 2000);
+  };
+
+  // ✅ Wishlist toggle uses store
+  const handleWishlist = () => {
+    toggleWishlist({
+      slug,
+      name: product.name,
+      price: product.price,
+      volume: product.variants[selectedVariant]?.volume || "100 ml",
+      // img: product.img,
+    });
+  };
 
   return (
     <>
@@ -107,19 +103,17 @@ export default function ProductDetailsTop({ slug }) {
         }
       `}</style>
 
-      <section style={{ width: "100%", background: "#0A0806", padding: "28px 0 72px" , marginTop: "72px" }}>
+      <section style={{ width: "100%", background: "#0A0806", padding: "28px 0 72px", marginTop: "72px" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "0 40px" }}>
 
           {/* Breadcrumb */}
           <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "36px" }}>
             {["Home", "Products", product.name].map((crumb, i, arr) => (
               <span key={crumb} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <a href="#" style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "12px",
+                <a href={i === 0 ? "/" : i === 1 ? "/shop" : "#"} style={{
+                  fontFamily: "'Jost', sans-serif", fontSize: "12px",
                   color: i === arr.length - 1 ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)",
-                  textDecoration: "none",
-                  transition: "color 0.2s",
+                  textDecoration: "none", transition: "color 0.2s",
                 }}
                   onMouseEnter={(e) => e.currentTarget.style.color = "#C4914F"}
                   onMouseLeave={(e) => e.currentTarget.style.color = i === arr.length - 1 ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)"}
@@ -143,19 +137,13 @@ export default function ProductDetailsTop({ slug }) {
 
             {/* ── Left: Image gallery ── */}
             <div className="pdp-image-col" style={{ animation: "fadeUp 0.8s ease forwards" }}>
-              {/* Main image */}
               <div style={{
-                width: "100%",
-                aspectRatio: "3 / 4",
+                width: "100%", aspectRatio: "3 / 4",
                 background: "linear-gradient(160deg, #1c1916 0%, #0e0c0a 100%)",
                 borderRadius: "10px",
                 border: "1px solid rgba(255,255,255,0.06)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                position: "relative",
-                overflow: "hidden",
-                marginBottom: "16px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative", overflow: "hidden", marginBottom: "16px",
               }}>
                 {/*
                   Replace with:
@@ -166,10 +154,7 @@ export default function ProductDetailsTop({ slug }) {
                              filter:'drop-shadow(0 16px 48px rgba(196,145,79,0.3))' }}
                   />
                 */}
-                <div style={{
-                  display: "flex", flexDirection: "column",
-                  alignItems: "center", gap: "10px",
-                }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
                   <svg width="44" height="44" fill="none" stroke="rgba(196,145,79,0.3)"
                     strokeWidth="1.2" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -184,8 +169,6 @@ export default function ProductDetailsTop({ slug }) {
                     Main Product Image {activeImage + 1}
                   </span>
                 </div>
-
-                {/* Glow */}
                 <div style={{
                   position: "absolute", inset: 0,
                   background: "radial-gradient(ellipse at 50% 70%, rgba(196,145,79,0.08) 0%, transparent 65%)",
@@ -193,14 +176,13 @@ export default function ProductDetailsTop({ slug }) {
                 }} />
               </div>
 
-              {/* Dot indicators */}
+              {/* Dot indicators — based on variants count */}
               <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
-                {[0, 1].map((i) => (
+                {product.variants.map((_, i) => (
                   <button key={i} onClick={() => setActiveImage(i)}
                     style={{
                       width: i === activeImage ? "20px" : "8px",
-                      height: "8px",
-                      borderRadius: "4px",
+                      height: "8px", borderRadius: "4px",
                       background: i === activeImage ? "#C4914F" : "rgba(255,255,255,0.2)",
                       border: "none", cursor: "pointer",
                       transition: "all 0.3s ease", padding: 0,
@@ -216,43 +198,32 @@ export default function ProductDetailsTop({ slug }) {
               {/* Name */}
               <h1 style={{
                 fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "clamp(26px, 3vw, 38px)",
-                fontWeight: 700,
-                color: "#FFFFFF",
-                marginBottom: "20px",
-                letterSpacing: "0.01em",
-                lineHeight: 1.2,
+                fontSize: "clamp(26px, 3vw, 38px)", fontWeight: 700,
+                color: "#FFFFFF", marginBottom: "20px",
+                letterSpacing: "0.01em", lineHeight: 1.2,
               }}>
                 {product.name}
               </h1>
 
               {/* Description */}
               <p style={{
-                fontFamily: "'Jost', sans-serif",
-                fontSize: "14px",
-                fontWeight: 300,
-                color: "rgba(255,255,255,0.58)",
-                lineHeight: 1.8,
-                marginBottom: "20px",
+                fontFamily: "'Jost', sans-serif", fontSize: "14px",
+                fontWeight: 300, color: "rgba(255,255,255,0.58)",
+                lineHeight: 1.8, marginBottom: "20px",
               }}>
                 {product.description}
               </p>
 
-              {/* Rating row */}
+              {/* Rating */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px" }}>
                 <Stars rating={product.rating} />
-                <span style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "12px",
-                  color: "rgba(255,255,255,0.4)",
-                }}>
+                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
                   ({product.reviews})
                 </span>
                 <a href="#reviews" style={{
                   fontFamily: "'Jost', sans-serif", fontSize: "12px",
-                  color: "rgba(255,255,255,0.4)",
-                  textDecoration: "underline",
-                  textUnderlineOffset: "3px",
-                  transition: "color 0.2s",
+                  color: "rgba(255,255,255,0.4)", textDecoration: "underline",
+                  textUnderlineOffset: "3px", transition: "color 0.2s",
                 }}
                   onMouseEnter={(e) => e.currentTarget.style.color = "#C4914F"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.4)"}
@@ -264,36 +235,25 @@ export default function ProductDetailsTop({ slug }) {
               {/* Volume variants */}
               <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
                 {product.variants.map((v, i) => (
-                  <button
-                    key={v.id}
-                    className="variant-thumb"
+                  <button key={v.id} className="variant-thumb"
                     onClick={() => setSelectedVariant(i)}
                     style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: "8px",
-                      padding: "10px",
+                      display: "flex", flexDirection: "column",
+                      alignItems: "center", gap: "8px", padding: "10px",
                       background: "transparent",
-                      border: selectedVariant === i
-                        ? "1px solid #C4914F"
-                        : "1px solid rgba(255,255,255,0.12)",
-                      borderRadius: "6px",
-                      cursor: "pointer",
-                      transition: "border-color 0.2s",
-                      width: "72px",
+                      border: selectedVariant === i ? "1px solid #C4914F" : "1px solid rgba(255,255,255,0.12)",
+                      borderRadius: "6px", cursor: "pointer",
+                      transition: "border-color 0.2s", width: "72px",
                     }}
                   >
                     {/*
-                      Replace inner div with:
+                      Replace with:
                       <img src={v.img} alt={v.volume}
-                        style={{ width:'44px', height:'52px', objectFit:'contain',
-                                 filter:'drop-shadow(0 4px 8px rgba(0,0,0,0.4))' }} />
+                        style={{ width:'44px', height:'52px', objectFit:'contain' }} />
                     */}
                     <div style={{
                       width: "44px", height: "52px",
-                      border: "1px dashed rgba(196,145,79,0.25)",
-                      borderRadius: "4px",
+                      border: "1px dashed rgba(196,145,79,0.25)", borderRadius: "4px",
                       background: "rgba(196,145,79,0.04)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
@@ -304,8 +264,7 @@ export default function ProductDetailsTop({ slug }) {
                       </svg>
                     </div>
                     <span style={{
-                      fontFamily: "'Jost', sans-serif",
-                      fontSize: "11px",
+                      fontFamily: "'Jost', sans-serif", fontSize: "11px",
                       color: selectedVariant === i ? "#C4914F" : "rgba(255,255,255,0.5)",
                       transition: "color 0.2s",
                     }}>
@@ -317,96 +276,62 @@ export default function ProductDetailsTop({ slug }) {
 
               {/* Price */}
               <p style={{
-                fontFamily: "'Jost', sans-serif",
-                fontSize: "26px",
-                fontWeight: 600,
-                color: "#C4914F",
-                marginBottom: "28px",
-                letterSpacing: "0.02em",
+                fontFamily: "'Jost', sans-serif", fontSize: "26px",
+                fontWeight: 600, color: "#C4914F",
+                marginBottom: "28px", letterSpacing: "0.02em",
               }}>
                 $ {product.price}
               </p>
 
-              {/* Qty + Wishlist row */}
-              <div style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "20px",
-                marginBottom: "20px",
-              }}>
+              {/* Qty + Wishlist */}
+              <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
                 <span style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "13px",
-                  color: "rgba(255,255,255,0.6)",
-                  fontWeight: 400,
+                  fontFamily: "'Jost', sans-serif", fontSize: "13px",
+                  color: "rgba(255,255,255,0.6)", fontWeight: 400,
                 }}>Qty</span>
 
-                {/* Qty stepper */}
                 <div style={{
-                  display: "flex",
-                  alignItems: "center",
+                  display: "flex", alignItems: "center",
                   border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: "6px",
-                  overflow: "hidden",
+                  borderRadius: "6px", overflow: "hidden",
                 }}>
-                  <button
-                    className="qty-btn"
-                    onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}
                     style={{
-                      width: "36px", height: "36px",
-                      background: "transparent",
-                      border: "none",
-                      borderRight: "1px solid rgba(255,255,255,0.1)",
-                      color: "rgba(255,255,255,0.7)",
-                      fontSize: "16px",
-                      cursor: "pointer",
+                      width: "36px", height: "36px", background: "transparent",
+                      border: "none", borderRight: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       transition: "all 0.2s",
-                    }}
-                  >
+                    }}>
                     −
                   </button>
                   <span style={{
-                    width: "40px",
-                    textAlign: "center",
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: "14px",
-                    fontWeight: 500,
-                    color: "#FFFFFF",
+                    width: "40px", textAlign: "center",
+                    fontFamily: "'Jost', sans-serif", fontSize: "14px",
+                    fontWeight: 500, color: "#FFFFFF",
                   }}>
                     {qty}
                   </span>
-                  <button
-                    className="qty-btn"
-                    onClick={() => setQty((q) => q + 1)}
+                  <button className="qty-btn" onClick={() => setQty((q) => q + 1)}
                     style={{
-                      width: "36px", height: "36px",
-                      background: "transparent",
-                      border: "none",
-                      borderLeft: "1px solid rgba(255,255,255,0.1)",
-                      color: "rgba(255,255,255,0.7)",
-                      fontSize: "16px",
-                      cursor: "pointer",
+                      width: "36px", height: "36px", background: "transparent",
+                      border: "none", borderLeft: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       transition: "all 0.2s",
-                    }}
-                  >
+                    }}>
                     +
                   </button>
                 </div>
 
-                {/* Wishlist */}
-                <button
-                  onClick={() => setWished(!wished)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "6px",
-                    background: "transparent", border: "none",
-                    color: wished ? "#C4914F" : "rgba(255,255,255,0.6)",
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: "13px", cursor: "pointer",
-                    transition: "color 0.2s",
-                  }}
-                >
+                {/* ✅ Wishlist button — uses store */}
+                <button onClick={handleWishlist} style={{
+                  display: "flex", alignItems: "center", gap: "6px",
+                  background: "transparent", border: "none",
+                  color: wished ? "#C4914F" : "rgba(255,255,255,0.6)",
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "13px", cursor: "pointer", transition: "color 0.2s",
+                }}>
                   <span>Wish list</span>
                   <svg width="18" height="18" viewBox="0 0 24 24"
                     fill={wished ? "#C4914F" : "none"}
@@ -418,65 +343,39 @@ export default function ProductDetailsTop({ slug }) {
               </div>
 
               {/* Add to Bag */}
-              <button
-                onClick={handleAddToBag}
-                style={{
-                  width: "100%",
-                  padding: "15px",
-                  background: addedToBag ? "#8a6535" : "transparent",
-                  border: "1px solid #C4914F",
-                  borderRadius: "6px",
-                  color: addedToBag ? "#fff" : "#C4914F",
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  cursor: "pointer",
-                  transition: "all 0.25s ease",
-                  marginBottom: "16px",
-                  animation: addedToBag ? "bagSuccess 0.3s ease" : "none",
-                }}
-                onMouseEnter={(e) => {
-                  if (!addedToBag) {
-                    e.currentTarget.style.background = "rgba(196,145,79,0.1)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!addedToBag) {
-                    e.currentTarget.style.background = "transparent";
-                  }
-                }}
+              <button onClick={handleAddToBag} style={{
+                width: "100%", padding: "15px",
+                background: addedToBag ? "#8a6535" : "transparent",
+                border: "1px solid #C4914F", borderRadius: "6px",
+                color: addedToBag ? "#fff" : "#C4914F",
+                fontFamily: "'Jost', sans-serif", fontSize: "14px",
+                fontWeight: 600, letterSpacing: "0.08em",
+                textTransform: "uppercase", cursor: "pointer",
+                transition: "all 0.25s ease", marginBottom: "16px",
+                animation: addedToBag ? "bagSuccess 0.3s ease" : "none",
+              }}
+                onMouseEnter={(e) => { if (!addedToBag) e.currentTarget.style.background = "rgba(196,145,79,0.1)"; }}
+                onMouseLeave={(e) => { if (!addedToBag) e.currentTarget.style.background = "transparent"; }}
               >
                 {addedToBag ? "✓ Added to Bag!" : "Add to Bag"}
               </button>
 
               {/* Afterpay */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: "10px",
-              }}>
-                {/* Afterpay badge placeholder */}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <div style={{
-                  background: "#B2FCE4",
-                  borderRadius: "4px",
-                  padding: "3px 8px",
+                  background: "#B2FCE4", borderRadius: "4px", padding: "3px 8px",
                   display: "flex", alignItems: "center", gap: "2px",
                 }}>
                   <span style={{
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    color: "#000",
-                    letterSpacing: "0.02em",
+                    fontFamily: "'Jost', sans-serif", fontSize: "11px",
+                    fontWeight: 700, color: "#000", letterSpacing: "0.02em",
                   }}>
                     afterpay<span style={{ color: "#B2FCE4", background: "#000", borderRadius: "2px", padding: "0 2px" }}>⚡</span>
                   </span>
                 </div>
                 <span style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "12px",
-                  color: "rgba(255,255,255,0.4)",
-                  fontWeight: 300,
+                  fontFamily: "'Jost', sans-serif", fontSize: "12px",
+                  color: "rgba(255,255,255,0.4)", fontWeight: 300,
                 }}>
                   Shop now and pay later with 4 payments
                 </span>
