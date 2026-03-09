@@ -198,6 +198,7 @@ export default function CheckoutPage() {
       clearCart();
 
       // Step 3: Redirect to Safepay hosted checkout
+      console.log("Safepay redirect URL:", redirect_url);
       window.location.href = redirect_url;
     } catch (err) {
       setError(err.message || "Payment failed. Please try again.");

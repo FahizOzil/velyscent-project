@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 
-const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENV !== "production";
-const BASE      = isSandbox
-  ? "https://sandbox.api.getsafepay.com"
-  : "https://api.getsafepay.com";
-
 export async function POST(req) {
   try {
     const { amount, currency, order_id, customer, payment_method } = await req.json();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    // ── Step 1: Create session ────────────────────────────────────────
-    const res = await fetch(`${BASE}/order/v1/init`, {
+    // Create session
+    const res = await fetch("https://sandbox.api.getsafepay.com/order/v1/init", {
       method: "POST",
       headers: {
         "Content-Type":           "application/json",
@@ -23,51 +18,35 @@ export async function POST(req) {
         mode:        "payment",
         currency:    currency || "PKR",
         amount:      amount,
-        environment: isSandbox ? "sandbox" : "production",
+        environment: "sandbox",
       }),
     });
 
-    const raw  = await res.text();
-    let data;
-    try { data = JSON.parse(raw); }
-    catch {
-      return NextResponse.json({ error: "Safepay returned non-JSON", raw }, { status: 500 });
-    }
-
+    const data = await res.json();
     const token = data?.data?.token;
+
     if (!token) {
-      return NextResponse.json(
-        { error: "No token from Safepay", safepay_response: data },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "No token", data }, { status: 500 });
     }
 
-    // ── Step 2: Build checkout URL ────────────────────────────────────
-    const checkoutBase = isSandbox
-      ? "https://sandbox.api.getsafepay.com/checkout/pay"
-      : "https://getsafepay.com/checkout/pay";
+    // Build the Safepay checkout URL exactly as their docs show
+    const url = new URL("https://sandbox.api.getsafepay.com/checkout/pay");
+    url.searchParams.append("env",             "sandbox");
+    url.searchParams.append("beacon",          token);
+    url.searchParams.append("order_id",        order_id);
+    url.searchParams.append("source",          "custom");
+    url.searchParams.append("redirect_url",    `${siteUrl}/order-confirmation`);
+    url.searchParams.append("cancel_url",      `${siteUrl}/checkout`);
+    url.searchParams.append("phone",           customer?.phone  || "");
+    url.searchParams.append("email",           customer?.email  || "");
+    url.searchParams.append("full_name",       customer?.name   || "");
 
-    const params = new URLSearchParams();
-    params.set("beacon",           token);
-    params.set("merchant_api_key", process.env.NEXT_PUBLIC_SAFEPAY_KEY);
-    params.set("source",           "custom");
-    params.set("order_id",         order_id);
-    params.set("environment",      isSandbox ? "sandbox" : "production"); // ✅ fixes the error
-    params.set("redirect_url",     `${siteUrl}/order-confirmation`);
-    params.set("cancel_url",       `${siteUrl}/checkout`);
+    if (payment_method === "easypaisa") url.searchParams.append("payment_method", "EASYPAISA");
+    if (payment_method === "jazzcash")  url.searchParams.append("payment_method", "JAZZCASH");
 
-    if (customer?.email) params.set("email",         customer.email);
-    if (customer?.name)  params.set("customer_name", customer.name);
-    if (customer?.phone) params.set("phone",          customer.phone);
-
-    if (payment_method === "easypaisa") params.set("payment_method", "EASYPAISA");
-    if (payment_method === "jazzcash")  params.set("payment_method", "JAZZCASH");
-
-    const redirect_url = `${checkoutBase}?${params.toString()}`;
-    return NextResponse.json({ token, redirect_url });
+    return NextResponse.json({ token, redirect_url: url.toString() });
 
   } catch (err) {
-    console.error("Safepay error:", err.message);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
