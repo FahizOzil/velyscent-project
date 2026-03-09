@@ -1,114 +1,82 @@
 import { NextResponse } from "next/server";
 
+const SAFEPAY_BASE = process.env.NEXT_PUBLIC_SAFEPAY_ENV === "production"
+  ? "https://api.getsafepay.com"
+  : "https://sandbox.api.getsafepay.com";
+
+// Helper — fetch and safely parse JSON, return raw text on failure
+async function safeFetch(url, options) {
+  const res = await fetch(url, options);
+  const raw = await res.text();
+  let data = null;
+  try { data = JSON.parse(raw); } catch { data = { _raw: raw }; }
+  return { ok: res.ok, status: res.status, data };
+}
+
 export async function POST(req) {
   try {
     const { amount, currency, order_id, customer, payment_method } = await req.json();
 
-    const isSandbox = process.env.NEXT_PUBLIC_SAFEPAY_ENV !== "production";
-    const SAFEPAY_BASE = isSandbox
-      ? "https://sandbox.api.getsafepay.com"
-      : "https://api.getsafepay.com";
-
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-    // ── Step 1: Create tracked payment session (Payments 2.0) ─────────
-    const sessionRes = await fetch(`${SAFEPAY_BASE}/client/payments/v2/session/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-SFPY-MERCHANT-SECRET": process.env.SAFEPAY_SECRET,
-      },
-      body: JSON.stringify({
-        merchant_api_key: process.env.NEXT_PUBLIC_SAFEPAY_KEY,
-        intent:           "CYBERSOURCE",
-        mode:             "payment",
-        currency:         currency || "PKR",
-        amount:           amount,        // in paisa (250 PKR = 25000)
-      }),
+    const body = JSON.stringify({
+      merchant_api_key: process.env.NEXT_PUBLIC_SAFEPAY_KEY,
+      intent:           "CYBERSOURCE",
+      mode:             "payment",
+      currency:         currency || "PKR",
+      amount:           amount,
     });
 
-    const sessionData = await sessionRes.json();
-    console.log("Safepay session response:", JSON.stringify(sessionData));
+    const headers = {
+      "Content-Type": "application/json",
+      "X-SFPY-MERCHANT-SECRET": process.env.SAFEPAY_SECRET,
+    };
 
-    // Try Payments 2.0 token path first, fall back to v1 path
-    const token =
-      sessionData?.data?.token ||
-      sessionData?.token ||
-      sessionData?.data?.tracker?.token ||
-      null;
+    // ── Try Payments 2.0 first ────────────────────────────────────────
+    let token = null;
+    const v2 = await safeFetch(`${SAFEPAY_BASE}/client/payments/v2/session/`, { method: "POST", headers, body });
+    console.log("v2 response:", JSON.stringify(v2));
 
-    if (!sessionRes.ok || !token) {
-      // ── Fallback: try v1 endpoint ─────────────────────────────────
-      console.log("Trying v1 endpoint fallback...");
-      const v1Res = await fetch(`${SAFEPAY_BASE}/order/v1/init`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-SFPY-MERCHANT-SECRET": process.env.SAFEPAY_SECRET,
-        },
-        body: JSON.stringify({
-          merchant_api_key: process.env.NEXT_PUBLIC_SAFEPAY_KEY,
-          intent:           "CYBERSOURCE",
-          mode:             "payment",
-          currency:         currency || "PKR",
-          amount:           amount,
-        }),
-      });
+    token = v2.data?.data?.token || v2.data?.token || v2.data?.data?.tracker?.token;
 
-      const v1Data = await v1Res.json();
-      console.log("Safepay v1 response:", JSON.stringify(v1Data));
+    // ── Fall back to v1 ───────────────────────────────────────────────
+    if (!token) {
+      const v1 = await safeFetch(`${SAFEPAY_BASE}/order/v1/init`, { method: "POST", headers, body });
+      console.log("v1 response:", JSON.stringify(v1));
 
-      const v1Token = v1Data?.data?.token || v1Data?.token;
+      token = v1.data?.data?.token || v1.data?.token;
 
-      if (!v1Res.ok || !v1Token) {
-        return NextResponse.json(
-          {
-            error: "Safepay session failed",
-            safepay_error: v1Data,
-            session_error: sessionData,
-          },
-          { status: 500 }
-        );
+      if (!token) {
+        return NextResponse.json({
+          error: "Could not get Safepay token",
+          v2_response: v2.data,
+          v1_response: v1.data,
+        }, { status: 500 });
       }
-
-      // Build URL with v1 token
-      return buildRedirect(v1Token, order_id, customer, payment_method, siteUrl, isSandbox);
     }
 
-    return buildRedirect(token, order_id, customer, payment_method, siteUrl, isSandbox);
+    // ── Build redirect URL ────────────────────────────────────────────
+    const checkoutBase = process.env.NEXT_PUBLIC_SAFEPAY_ENV === "production"
+      ? "https://getsafepay.com/checkout/pay"
+      : "https://sandbox.api.getsafepay.com/checkout/pay";
+
+    const params = new URLSearchParams();
+    params.set("beacon",           token);
+    params.set("merchant_api_key", process.env.NEXT_PUBLIC_SAFEPAY_KEY);
+    params.set("source",           "custom");
+    params.set("order_id",         order_id);
+    params.set("redirect_url",     `${siteUrl}/order-confirmation`);
+    params.set("cancel_url",       `${siteUrl}/checkout`);
+    if (customer?.email) params.set("email",         customer.email);
+    if (customer?.name)  params.set("customer_name", customer.name);
+    if (customer?.phone) params.set("phone",          customer.phone);
+    if (payment_method === "easypaisa") params.set("payment_method", "EASYPAISA");
+    if (payment_method === "jazzcash")  params.set("payment_method", "JAZZCASH");
+
+    return NextResponse.json({ token, redirect_url: `${checkoutBase}?${params.toString()}` });
 
   } catch (err) {
-    console.error("Safepay route exception:", err?.message);
-    return NextResponse.json(
-      { error: err?.message || "Internal server error" },
-      { status: 500 }
-    );
+    console.error("Safepay exception:", err.message);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-}
-
-// ── Build Safepay redirect URL ────────────────────────────────────────
-function buildRedirect(token, order_id, customer, payment_method, siteUrl, isSandbox) {
-  const checkoutBase = isSandbox
-    ? "https://sandbox.api.getsafepay.com/checkout/pay"
-    : "https://getsafepay.com/checkout/pay";
-
-  const params = new URLSearchParams();
-  params.set("beacon",           token);
-  params.set("merchant_api_key", process.env.NEXT_PUBLIC_SAFEPAY_KEY);
-  params.set("source",           "custom");
-  params.set("order_id",         order_id);
-  params.set("redirect_url",     `${siteUrl}/order-confirmation`);
-  params.set("cancel_url",       `${siteUrl}/checkout`);
-
-  if (customer?.email) params.set("email",         customer.email);
-  if (customer?.name)  params.set("customer_name", customer.name);
-  if (customer?.phone) params.set("phone",          customer.phone);
-
-  if (payment_method === "easypaisa") params.set("payment_method", "EASYPAISA");
-  if (payment_method === "jazzcash")  params.set("payment_method", "JAZZCASH");
-
-  const redirect_url = `${checkoutBase}?${params.toString()}`;
-  console.log("Safepay redirect:", redirect_url);
-
-  return NextResponse.json({ token, redirect_url });
 }
