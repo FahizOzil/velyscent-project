@@ -1,3 +1,4 @@
+// this is wishlist 
 "use client";
 import Link from "next/link";
 import { useWishlistStore } from "@/store/wishlistStore";
