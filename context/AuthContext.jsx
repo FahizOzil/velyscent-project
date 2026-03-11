@@ -24,16 +24,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signUp = async (email, password, fullName) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/signin`, // ← redirect after email verify
-      },
-    });
-    return { data, error };
-  };
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://velyscent-project.vercel.app";
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: `${siteUrl}/signin`,
+    },
+  });
+  return { data, error };
+};
 
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
