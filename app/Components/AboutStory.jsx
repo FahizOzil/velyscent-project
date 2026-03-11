@@ -46,7 +46,7 @@ export default function AboutStory() {
             lineHeight: 1.9,
             letterSpacing: "0.02em",
           }}>
-            Velyscent was founded by a group of perfume enthusiasts with a shared vision to
+            Velyrascent was founded by a group of perfume enthusiasts with a shared vision to
             create a haven for perfume lovers seeking authentic, locally-inspired fragrances. Inspired by
             the diversity and richness of cultures around the world, we set out on a journey to curate a
             collection of scents that capture the essence of each region. Our aim is to bring you closer
@@ -65,7 +65,7 @@ export default function AboutStory() {
             Replace placeholder with:
             <img
               src="/images/about/our-story.jpg"
-              alt="Our Story — Velyscent perfume shelves"
+              alt="Our Story — Velyrascent perfume shelves"
               style={{
                 width: '100%',
                 height: '100%',

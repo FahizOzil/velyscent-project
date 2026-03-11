@@ -229,11 +229,9 @@ export default function SignupPage() {
         <div style={{ width: "100%", maxWidth: "440px", animation: "fadeUp 0.8s ease forwards" }}>
 
           <div style={{ textAlign: "center", marginBottom: "36px" }}>
-            <Link href="/" style={{ textDecoration: "none" }}>
-              <h1 style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "28px", fontWeight: 700, color: "#C4914F", letterSpacing: "0.08em",
-              }}>VELYSCENT</h1>
+            <Link href="/" style={{ textDecoration: "none", display: "flex", justifyContent: "center" }}>
+              {/* logo image in center */}
+              <img src="/main-logo.png" alt="Logo" style={{ height: "130px" }} />
             </Link>
             <p style={{
               fontFamily: "'Jost', sans-serif", fontSize: "13px", fontWeight: 300,

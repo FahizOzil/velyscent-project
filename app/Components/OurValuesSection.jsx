@@ -47,7 +47,7 @@ export default function OurValuesSection() {
               Replace the div below with:
               <img
                 src="/images/values-bottle.jpg"
-                alt="Velyscent perfume bottle with botanicals"
+                alt="Velyrascent perfume bottle with botanicals"
                 style={{ width:'100%', height:'100%', objectFit:'cover',
                          objectPosition:'center' }}
               />
@@ -138,7 +138,7 @@ export default function OurValuesSection() {
                 textAlign: "center",
               }}
             >
-              At Velyscent, our perfume retail store is built on a foundation
+              At Velyrascent, our perfume retail store is built on a foundation
               of passion and authenticity. We believe in celebrating the
               individuality of every customer, providing a diverse collection of
               scents that resonate with their unique personality and style. Our
@@ -157,7 +157,7 @@ export default function OurValuesSection() {
                 textAlign: "center",
               }}
             >
-              Embracing sustainability and continuous learning, Velyscent
+              Embracing sustainability and continuous learning, Velyrascent
               strives to be more than just a shopping destination; we are a
               community that inspires and empowers individuals on their
               fragrance journey.

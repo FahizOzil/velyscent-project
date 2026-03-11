@@ -132,7 +132,7 @@ export default function ServicesHero() {
               lineHeight: 1.85,
               letterSpacing: "0.02em",
             }}>
-              At Velyscent, we are dedicated to providing you with a delightful and immersive perfume
+              At Velyrascent, we are dedicated to providing you with a delightful and immersive perfume
               shopping experience. Our services are tailored to ensure that you find the perfect fragrance that
               complements your unique personality and style. We take pride in offering a range of services that
               go beyond just selling perfumes, aiming to make your journey with us truly special.

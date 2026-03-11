@@ -134,7 +134,7 @@ export default function Footer() {
                   letterSpacing: "0.02em",
                 }}
               >
-                Velyscent
+                Velyrascent
               </a>
 
               {/* Newsletter label */}
@@ -304,7 +304,7 @@ export default function Footer() {
               letterSpacing: "0.04em",
             }}
           >
-            © 2025 Velyscent Inc. All rights reserved
+            © 2025 Velyrascent Inc. All rights reserved
           </p>
         </div>
       </footer>

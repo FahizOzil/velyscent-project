@@ -33,7 +33,7 @@ const services = [
   {
     number: "05.",
     title: "Eco-friendly Initiatives",
-    body: "At Velyscent, we are committed to sustainability and eco-conscious practices. As part of our services, we offer guidance on selecting environmentally friendly and cruelty-free fragrances. We partner with brands that share our values and are dedicated to making a positive impact on the planet.",
+    body: "At Velyrascent, we are committed to sustainability and eco-conscious practices. As part of our services, we offer guidance on selecting environmentally friendly and cruelty-free fragrances. We partner with brands that share our values and are dedicated to making a positive impact on the planet.",
     imageLeft: false,
     // img: "/images/services/eco-friendly.jpg",
   },
@@ -206,7 +206,7 @@ export default function ServicesList() {
               lineHeight: 1.85,
               marginBottom: "22px",
             }}>
-              At Velyscent, our passion for perfumery drives us to go above and beyond to serve you better. We invite you to experience our exceptional services and indulge in the world of luxurious scents. Let us be your trusted fragrance destination, where your olfactory dreams come to life.
+              At Velyrascent, our passion for perfumery drives us to go above and beyond to serve you better. We invite you to experience our exceptional services and indulge in the world of luxurious scents. Let us be your trusted fragrance destination, where your olfactory dreams come to life.
             </p>
 
             <p style={{
@@ -227,7 +227,7 @@ export default function ServicesList() {
               color: "rgba(255,255,255,0.7)",
               letterSpacing: "0.02em",
             }}>
-              Your Velyscent Team
+              Your Velyrascent Team
             </p>
           </div>
 

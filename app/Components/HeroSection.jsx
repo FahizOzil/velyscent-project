@@ -120,7 +120,7 @@ function HeroSection() {
           >
             Shop now and embrace the sweet smell of victory
             <br />
-            with Velyscent.
+            with Velyrascent.
           </p>
 
           <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
@@ -255,7 +255,7 @@ function HeroSection() {
               Replace the div below with your <img> tag:
               <img
                 src="/images/hero-bottle.png"
-                alt="Velyscent Perfume Bottle"
+                alt="Velyrascent Perfume Bottle"
                 style={{ width: '100%', maxWidth: '460px', position: 'relative', zIndex: 2,
                          filter: 'drop-shadow(0 40px 80px rgba(196,145,79,0.35))' }}
               />

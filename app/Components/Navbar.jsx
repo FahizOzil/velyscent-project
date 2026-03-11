@@ -124,7 +124,7 @@ const { openSearch } = useSearchStore();
           color: "#C4914F", letterSpacing: "0.02em",
           textDecoration: "none", flexShrink: 0,
         }}>
-          Velyscent
+         <img src="/main-logo.png" alt="Logo" style={{ height: "70px" }}  />
         </Link>
 
         {/* Desktop Nav Links */}

@@ -144,7 +144,7 @@ export default function AboutUnique() {
                 marginTop: "4px",
                 letterSpacing: "0.02em",
               }}>
-                The Velyscent Team
+                The Velyrascent Team
               </p>
             </div>
           </div>

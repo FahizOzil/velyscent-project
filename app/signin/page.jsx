@@ -92,14 +92,9 @@ export default function SigninPage() {
 
           {/* Logo */}
           <div style={{ textAlign: "center", marginBottom: "36px" }}>
-            <Link href="/" style={{ textDecoration: "none" }}>
-              <h1 style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "28px", fontWeight: 700,
-                color: "#C4914F", letterSpacing: "0.08em",
-              }}>
-                VELYSCENT
-              </h1>
+            <Link href="/" style={{ textDecoration: "none", display: "flex", justifyContent: "center" }}>
+              {/* logo image in center */}
+              <img src="/main-logo.png" alt="Logo" style={{ height: "130px" }} />
             </Link>
             <p style={{
               fontFamily: "'Jost', sans-serif",

@@ -79,7 +79,7 @@ export default function BlogHero() {
                 lineHeight: 1.85,
                 marginBottom: "22px",
               }}>
-                Welcome to Velyscent's Perfumery Blog Collection! Here, we invite you to immerse yourself in the
+                Welcome to Velyrascent's Perfumery Blog Collection! Here, we invite you to immerse yourself in the
                 captivating world of fragrances, where each blog post is a sensory journey that unveils the magic and allure of
                 perfumes. Our team of fragrance enthusiasts, industry experts, and perfumers have curated an array of
                 captivating articles to enrich your understanding and appreciation for these olfactory delights.
@@ -92,7 +92,7 @@ export default function BlogHero() {
                 color: "rgba(255,255,255,0.58)",
                 lineHeight: 1.85,
               }}>
-                At Velyscent, we believe that perfumery is an extraordinary fusion of art, science, and emotion. Our
+                At Velyrascent, we believe that perfumery is an extraordinary fusion of art, science, and emotion. Our
                 passion for exquisite fragrances has inspired us to curate a treasure trove of blog posts, each designed to
                 ignite your senses and deepen your appreciation for these olfactory wonders.
               </p>
