@@ -1,6 +1,6 @@
+// ProductDetailsTop.jsx
 "use client";
 import { useState } from "react";
-import { productsData } from "@/lib/productsData";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
 
@@ -19,84 +19,69 @@ function Stars({ rating, size = 16 }) {
 }
 
 // ─── Product Details Top ──────────────────────────────────────────────
-export default function ProductDetailsTop({ slug }) {
+// ✅ FIXED: receives full `product` object from page.jsx (Supabase data)
+//    OLD: export default function ProductDetailsTop({ slug }) { const product = productsData[slug] }
+//    NEW: export default function ProductDetailsTop({ product }) { ... }
+export default function ProductDetailsTop({ product }) {
 
-  // ✅ Step 1 — get product from central data (no duplicate object)
-  const product = productsData[slug];
-
-  // ✅ Step 2 — cart + wishlist stores
   const { addToCart } = useCartStore();
   const { toggleWishlist, isWishlisted } = useWishlistStore();
 
-  // ✅ Step 3 — all hooks together
   const [selectedVariant, setSelectedVariant] = useState(0);
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [addedToBag, setAddedToBag] = useState(false);
 
-  // ✅ Step 4 — early return AFTER all hooks
+  // Guard — should never hit this since page.jsx calls notFound() first
   if (!product) return (
     <div style={{
-      color: "rgba(255,255,255,0.5)",
-      textAlign: "center",
-      padding: "120px 0",
-      fontFamily: "'Jost', sans-serif",
-      fontSize: "16px",
-      background: "#0A0806",
-      minHeight: "60vh",
+      color: "rgba(255,255,255,0.5)", textAlign: "center",
+      padding: "120px 0", fontFamily: "'Jost', sans-serif",
+      fontSize: "16px", background: "#0A0806", minHeight: "60vh",
     }}>
       Product not found.
     </div>
   );
 
-  // ✅ Wishlist state comes from store — not local useState
-  const wished = isWishlisted(slug);
+  // Normalise variants — Supabase stores as JSON array
+  const variants = Array.isArray(product.variants) ? product.variants : [];
 
-  // ✅ Add to bag with qty support
+  const wished = isWishlisted(product.slug);
+
   const handleAddToBag = () => {
     addToCart({
-      slug,
-      name: product.name,
-      price: product.price,
-      variant: product.variants[selectedVariant]?.volume || "100 ml",
-      volume: product.variants[selectedVariant]?.volume || "100 ml",
+      slug:    product.slug,
+      name:    product.name,
+      price:   String(product.price),
+      variant: variants[selectedVariant]?.volume || "100ml",
+      volume:  variants[selectedVariant]?.volume || "100ml",
       qty,
-      // img: product.img,
     });
     setAddedToBag(true);
     setTimeout(() => setAddedToBag(false), 2000);
   };
 
-  // ✅ Wishlist toggle uses store
   const handleWishlist = () => {
     toggleWishlist({
-      slug,
-      name: product.name,
-      price: product.price,
-      volume: product.variants[selectedVariant]?.volume || "100 ml",
-      // img: product.img,
+      slug:   product.slug,
+      name:   product.name,
+      price:  String(product.price),
+      volume: variants[selectedVariant]?.volume || "100ml",
     });
   };
+
+  // Images array — Supabase stores as JSON array (may be empty while no images yet)
+  const images = Array.isArray(product.images) ? product.images : [];
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes bagSuccess {
-          0%   { transform: scale(1); }
-          50%  { transform: scale(0.96); }
-          100% { transform: scale(1); }
-        }
-
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes bagSuccess { 0%{transform:scale(1);} 50%{transform:scale(0.96);} 100%{transform:scale(1);} }
         .qty-btn:hover { background: rgba(196,145,79,0.15) !important; color: #C4914F !important; }
         .variant-thumb:hover { border-color: rgba(196,145,79,0.5) !important; }
-
         @media (max-width: 860px) {
           .pdp-grid { grid-template-columns: 1fr !important; }
           .pdp-image-col { min-height: 360px !important; }
@@ -120,19 +105,15 @@ export default function ProductDetailsTop({ slug }) {
                 >
                   {crumb}
                 </a>
-                {i < arr.length - 1 && (
-                  <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px" }}>/</span>
-                )}
+                {i < arr.length - 1 && <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px" }}>/</span>}
               </span>
             ))}
           </div>
 
           {/* Main grid */}
           <div className="pdp-grid" style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "64px",
-            alignItems: "start",
+            display: "grid", gridTemplateColumns: "1fr 1fr",
+            gap: "64px", alignItems: "start",
           }}>
 
             {/* ── Left: Image gallery ── */}
@@ -140,35 +121,32 @@ export default function ProductDetailsTop({ slug }) {
               <div style={{
                 width: "100%", aspectRatio: "3 / 4",
                 background: "linear-gradient(160deg, #1c1916 0%, #0e0c0a 100%)",
-                borderRadius: "10px",
-                border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: "10px", border: "1px solid rgba(255,255,255,0.06)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 position: "relative", overflow: "hidden", marginBottom: "16px",
               }}>
-                {/*
-                  Replace with:
+                {images[activeImage] ? (
                   <img
-                    src={product.mainImages[activeImage]}
+                    src={images[activeImage]}
                     alt={product.name}
-                    style={{ width:'70%', height:'85%', objectFit:'contain',
-                             filter:'drop-shadow(0 16px 48px rgba(196,145,79,0.3))' }}
+                    style={{
+                      width: "70%", height: "85%", objectFit: "contain",
+                      filter: "drop-shadow(0 16px 48px rgba(196,145,79,0.3))",
+                    }}
                   />
-                */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-                  <svg width="44" height="44" fill="none" stroke="rgba(196,145,79,0.3)"
-                    strokeWidth="1.2" viewBox="0 0 24 24">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <path d="m21 15-5-5L5 21" />
-                  </svg>
-                  <span style={{
-                    fontFamily: "'Jost', sans-serif", fontSize: "10px",
-                    letterSpacing: "0.2em", color: "rgba(196,145,79,0.3)",
-                    textTransform: "uppercase",
-                  }}>
-                    Main Product Image {activeImage + 1}
-                  </span>
-                </div>
+                ) : (
+                  // Placeholder until real images are uploaded
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+                    <svg width="44" height="44" fill="none" stroke="rgba(196,145,79,0.3)" strokeWidth="1.2" viewBox="0 0 24 24">
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <circle cx="8.5" cy="8.5" r="1.5" />
+                      <path d="m21 15-5-5L5 21" />
+                    </svg>
+                    <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "10px", letterSpacing: "0.2em", color: "rgba(196,145,79,0.3)", textTransform: "uppercase" }}>
+                      Product Image {activeImage + 1}
+                    </span>
+                  </div>
+                )}
                 <div style={{
                   position: "absolute", inset: 0,
                   background: "radial-gradient(ellipse at 50% 70%, rgba(196,145,79,0.08) 0%, transparent 65%)",
@@ -176,18 +154,15 @@ export default function ProductDetailsTop({ slug }) {
                 }} />
               </div>
 
-              {/* Dot indicators — based on variants count */}
+              {/* Dots — based on images array, fallback to variants count */}
               <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
-                {product.variants.map((_, i) => (
-                  <button key={i} onClick={() => setActiveImage(i)}
-                    style={{
-                      width: i === activeImage ? "20px" : "8px",
-                      height: "8px", borderRadius: "4px",
-                      background: i === activeImage ? "#C4914F" : "rgba(255,255,255,0.2)",
-                      border: "none", cursor: "pointer",
-                      transition: "all 0.3s ease", padding: 0,
-                    }}
-                  />
+                {(images.length > 0 ? images : variants).map((_, i) => (
+                  <button key={i} onClick={() => setActiveImage(i)} style={{
+                    width: i === activeImage ? "20px" : "8px", height: "8px",
+                    borderRadius: "4px",
+                    background: i === activeImage ? "#C4914F" : "rgba(255,255,255,0.2)",
+                    border: "none", cursor: "pointer", transition: "all 0.3s ease", padding: 0,
+                  }} />
                 ))}
               </div>
             </div>
@@ -216,9 +191,9 @@ export default function ProductDetailsTop({ slug }) {
 
               {/* Rating */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px" }}>
-                <Stars rating={product.rating} />
+                <Stars rating={Math.round(product.rating || 5)} />
                 <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
-                  ({product.reviews})
+                  ({product.review_count || 0})
                 </span>
                 <a href="#reviews" style={{
                   fontFamily: "'Jost', sans-serif", fontSize: "12px",
@@ -233,46 +208,42 @@ export default function ProductDetailsTop({ slug }) {
               </div>
 
               {/* Volume variants */}
-              <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
-                {product.variants.map((v, i) => (
-                  <button key={v.id} className="variant-thumb"
-                    onClick={() => setSelectedVariant(i)}
-                    style={{
-                      display: "flex", flexDirection: "column",
-                      alignItems: "center", gap: "8px", padding: "10px",
-                      background: "transparent",
-                      border: selectedVariant === i ? "1px solid #C4914F" : "1px solid rgba(255,255,255,0.12)",
-                      borderRadius: "6px", cursor: "pointer",
-                      transition: "border-color 0.2s", width: "72px",
-                    }}
-                  >
-                    {/*
-                      Replace with:
-                      <img src={v.img} alt={v.volume}
-                        style={{ width:'44px', height:'52px', objectFit:'contain' }} />
-                    */}
-                    <div style={{
-                      width: "44px", height: "52px",
-                      border: "1px dashed rgba(196,145,79,0.25)", borderRadius: "4px",
-                      background: "rgba(196,145,79,0.04)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <svg width="18" height="18" fill="none" stroke="rgba(196,145,79,0.3)"
-                        strokeWidth="1.2" viewBox="0 0 24 24">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <path d="m21 15-5-5L5 21" />
-                      </svg>
-                    </div>
-                    <span style={{
-                      fontFamily: "'Jost', sans-serif", fontSize: "11px",
-                      color: selectedVariant === i ? "#C4914F" : "rgba(255,255,255,0.5)",
-                      transition: "color 0.2s",
-                    }}>
-                      {v.volume}
-                    </span>
-                  </button>
-                ))}
-              </div>
+              {variants.length > 0 && (
+                <div style={{ display: "flex", gap: "12px", marginBottom: "28px" }}>
+                  {variants.map((v, i) => (
+                    <button key={v.id || i} className="variant-thumb"
+                      onClick={() => setSelectedVariant(i)}
+                      style={{
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", gap: "8px", padding: "10px",
+                        background: "transparent",
+                        border: selectedVariant === i ? "1px solid #C4914F" : "1px solid rgba(255,255,255,0.12)",
+                        borderRadius: "6px", cursor: "pointer",
+                        transition: "border-color 0.2s", width: "72px",
+                      }}
+                    >
+                      <div style={{
+                        width: "44px", height: "52px",
+                        border: "1px dashed rgba(196,145,79,0.25)", borderRadius: "4px",
+                        background: "rgba(196,145,79,0.04)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <svg width="18" height="18" fill="none" stroke="rgba(196,145,79,0.3)" strokeWidth="1.2" viewBox="0 0 24 24">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <path d="m21 15-5-5L5 21" />
+                        </svg>
+                      </div>
+                      <span style={{
+                        fontFamily: "'Jost', sans-serif", fontSize: "11px",
+                        color: selectedVariant === i ? "#C4914F" : "rgba(255,255,255,0.5)",
+                        transition: "color 0.2s",
+                      }}>
+                        {v.volume}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               {/* Price */}
               <p style={{
@@ -280,63 +251,47 @@ export default function ProductDetailsTop({ slug }) {
                 fontWeight: 600, color: "#C4914F",
                 marginBottom: "28px", letterSpacing: "0.02em",
               }}>
-                $ {product.price}
+                $ {parseFloat(product.price).toFixed(2)}
               </p>
 
               {/* Qty + Wishlist */}
               <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
-                <span style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "13px",
-                  color: "rgba(255,255,255,0.6)", fontWeight: 400,
-                }}>Qty</span>
+                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>Qty</span>
 
                 <div style={{
                   display: "flex", alignItems: "center",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: "6px", overflow: "hidden",
+                  border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", overflow: "hidden",
                 }}>
-                  <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}
-                    style={{
-                      width: "36px", height: "36px", background: "transparent",
-                      border: "none", borderRight: "1px solid rgba(255,255,255,0.1)",
-                      color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      transition: "all 0.2s",
-                    }}>
-                    −
-                  </button>
+                  <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))} style={{
+                    width: "36px", height: "36px", background: "transparent",
+                    border: "none", borderRight: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s",
+                  }}>−</button>
                   <span style={{
                     width: "40px", textAlign: "center",
-                    fontFamily: "'Jost', sans-serif", fontSize: "14px",
-                    fontWeight: 500, color: "#FFFFFF",
-                  }}>
-                    {qty}
-                  </span>
-                  <button className="qty-btn" onClick={() => setQty((q) => q + 1)}
-                    style={{
-                      width: "36px", height: "36px", background: "transparent",
-                      border: "none", borderLeft: "1px solid rgba(255,255,255,0.1)",
-                      color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      transition: "all 0.2s",
-                    }}>
-                    +
-                  </button>
+                    fontFamily: "'Jost', sans-serif", fontSize: "14px", fontWeight: 500, color: "#FFFFFF",
+                  }}>{qty}</span>
+                  <button className="qty-btn" onClick={() => setQty((q) => q + 1)} style={{
+                    width: "36px", height: "36px", background: "transparent",
+                    border: "none", borderLeft: "1px solid rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s",
+                  }}>+</button>
                 </div>
 
-                {/* ✅ Wishlist button — uses store */}
+                {/* Wishlist */}
                 <button onClick={handleWishlist} style={{
                   display: "flex", alignItems: "center", gap: "6px",
                   background: "transparent", border: "none",
                   color: wished ? "#C4914F" : "rgba(255,255,255,0.6)",
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "13px", cursor: "pointer", transition: "color 0.2s",
+                  fontFamily: "'Jost', sans-serif", fontSize: "13px",
+                  cursor: "pointer", transition: "color 0.2s",
                 }}>
                   <span>Wish list</span>
                   <svg width="18" height="18" viewBox="0 0 24 24"
                     fill={wished ? "#C4914F" : "none"}
-                    stroke={wished ? "#C4914F" : "rgba(255,255,255,0.6)"}
-                    strokeWidth="1.8">
+                    stroke={wished ? "#C4914F" : "rgba(255,255,255,0.6)"} strokeWidth="1.8">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                   </svg>
                 </button>
@@ -366,17 +321,11 @@ export default function ProductDetailsTop({ slug }) {
                   background: "#B2FCE4", borderRadius: "4px", padding: "3px 8px",
                   display: "flex", alignItems: "center", gap: "2px",
                 }}>
-                  <span style={{
-                    fontFamily: "'Jost', sans-serif", fontSize: "11px",
-                    fontWeight: 700, color: "#000", letterSpacing: "0.02em",
-                  }}>
-                    afterpay<span style={{ color: "#B2FCE4", background: "#000", borderRadius: "2px", padding: "0 2px" }}>⚡</span>
+                  <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "11px", fontWeight: 700, color: "#000" }}>
+                    afterpay ⚡
                   </span>
                 </div>
-                <span style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "12px",
-                  color: "rgba(255,255,255,0.4)", fontWeight: 300,
-                }}>
+                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
                   Shop now and pay later with 4 payments
                 </span>
               </div>

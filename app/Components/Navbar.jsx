@@ -48,7 +48,7 @@ const navLinks = [
   { label: "Home",     href: "/" },
   { label: "Shop",     href: "/shop" },
   { label: "About us", href: "/about" },
-  { label: "Services", href: "/services" },
+  // { label: "Services", href: "/services" },
   { label: "Blog",     href: "/blog" },
 ];
 

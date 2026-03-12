@@ -8,15 +8,17 @@ import OurCollectionsSection from "./Components/OurCollectionsSection";
 import SaleBannerSection from "./Components/SaleBannerSection";
 import LatestArticlesSection from "./Components/LatestArticlesSection";
 import Footer from "./Components/Footer";
+import { getFeaturedProducts } from "@/lib/productsService";
 
-export default function Home() {
+export default async function Home() {
+  const featured = await getFeaturedProducts(8);
   return (
      <main style={{ margin: 0, padding: 0, background: "#0A0806" }}>
       <Navbar />
       <HeroSection />
       <WelcomeSection />
       <OurValuesSection />
-      <BestSellingSection />
+      <BestSellingSection products={featured} />
       <OurCollectionsSection />
       <SaleBannerSection />
       <LatestArticlesSection />

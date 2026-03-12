@@ -44,7 +44,7 @@ const footerLinks = [
   },
   {
     heading: "Pages",
-    links: ["About Us", "Shop", "Contact Us", "Services", "Blog"],
+    links: ["About Us", "Shop", "Contact Us", "Blog"],
   },
 ];
 

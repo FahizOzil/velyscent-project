@@ -1,19 +1,20 @@
-import Image from "next/image";
+// app/shop/page.jsx
 import Navbar from "@/app/Components/Navbar";
+import ShopProductsSection from "@/app/Components/ShopProductsSection";
+import { getAllProducts, getCategories } from "@/lib/productsService";
 
-import Footer from "@/app/Components/Footer";
-import ShopProductsSection from "../Components/ShopProductsSection";
-import ShopOfferBanner from "../Components/ShopOfferBanner";
-import ShopOfferBannerGold from "../Components/ShopOfferBannerGold";
+export const revalidate = 60; // ISR — refresh every 60 seconds
 
-export default function Shop() {
+export default async function ShopPage() {
+  const [products, categories] = await Promise.all([
+    getAllProducts(),
+    getCategories(),
+  ]);
+
   return (
-     <main style={{ margin: 0, padding: 0, background: "#0A0806" }}>
+    <main style={{ background: "#0A0806" }}>
       <Navbar />
-      <ShopProductsSection />
-      <ShopOfferBanner />
-      <ShopOfferBannerGold />
-      <Footer />
+      <ShopProductsSection products={products} categories={categories} />
     </main>
   );
 }
