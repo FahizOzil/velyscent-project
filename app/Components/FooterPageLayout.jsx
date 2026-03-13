@@ -1,5 +1,4 @@
 // app/Components/FooterPageLayout.jsx
-"use client";
 import Link from "next/link";
 import Navbar from "@/app/Components/Navbar";
 
@@ -17,6 +16,8 @@ export default function FooterPageLayout({ title, subtitle, children }) {
         .footer-prose a { color: #C4914F; text-decoration: underline; text-underline-offset: 3px; }
         .footer-prose a:hover { color: #d4a870; }
         .divider { border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 8px 0 32px; }
+        .back-link { font-family: 'Jost',sans-serif; font-size: 13px; color: rgba(255,255,255,0.4); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s; }
+        .back-link:hover { color: #C4914F; }
       `}</style>
 
       <main style={{ background: "#0A0806", minHeight: "100vh" }}>
@@ -43,10 +44,7 @@ export default function FooterPageLayout({ title, subtitle, children }) {
 
           {/* Back link */}
           <div style={{ marginTop: "56px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-            <Link href="/" style={{ fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.4)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", transition: "color 0.2s" }}
-              onMouseEnter={(e) => e.currentTarget.style.color = "#C4914F"}
-              onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.4)"}
-            >
+            <Link href="/" className="back-link">
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
               Back to Home
             </Link>
