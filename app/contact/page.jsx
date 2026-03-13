@@ -1,7 +1,6 @@
+"use client";
 // app/contact/page.jsx
 import FooterPageLayout from "@/app/Components/FooterPageLayout";
-
-export const metadata = { title: "Contact Us — Velyscent" };
 
 const INFO = [
   {
@@ -48,25 +47,19 @@ export default function Contact() {
         title="Contact Us"
         subtitle="We'd love to hear from you. Reach out through any of the channels below."
       >
-        {/* Contact cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", marginBottom: "48px" }}>
           {INFO.map((item) => (
             <div key={item.label} className="contact-card" style={{
               background: "#131110", border: "1px solid rgba(196,145,79,0.12)",
               borderRadius: "10px", padding: "28px 24px",
             }}>
-              {/* Icon */}
               <div
                 style={{ width: "44px", height: "44px", borderRadius: "50%", background: "rgba(196,145,79,0.08)", border: "1px solid rgba(196,145,79,0.15)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}
                 dangerouslySetInnerHTML={{ __html: item.icon }}
               />
-
-              {/* Label */}
               <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", fontWeight: 500, color: "rgba(255,255,255,0.35)", letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "6px" }}>
                 {item.label}
               </p>
-
-              {/* Value */}
               {item.href ? (
                 <a href={item.href} target={item.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer" className="contact-link">
                   {item.value}
@@ -76,8 +69,6 @@ export default function Contact() {
                   {item.value}
                 </p>
               )}
-
-              {/* Note */}
               <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "12px", fontWeight: 300, color: "rgba(255,255,255,0.35)" }}>
                 {item.note}
               </p>
@@ -85,7 +76,6 @@ export default function Contact() {
           ))}
         </div>
 
-        {/* Response time note */}
         <div style={{ padding: "24px 28px", background: "rgba(196,145,79,0.05)", border: "1px solid rgba(196,145,79,0.12)", borderRadius: "10px", display: "flex", gap: "16px", alignItems: "flex-start" }}>
           <svg width="18" height="18" fill="none" stroke="#C4914F" strokeWidth="1.8" viewBox="0 0 24 24" style={{ flexShrink: 0, marginTop: "1px" }}>
             <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>

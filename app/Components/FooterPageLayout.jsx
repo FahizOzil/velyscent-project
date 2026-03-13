@@ -1,6 +1,8 @@
+"use client";
 // app/Components/FooterPageLayout.jsx
 import Link from "next/link";
 import Navbar from "@/app/Components/Navbar";
+
 export default function FooterPageLayout({ title, subtitle, children }) {
   return (
     <>
@@ -44,7 +46,9 @@ export default function FooterPageLayout({ title, subtitle, children }) {
           {/* Back link */}
           <div style={{ marginTop: "56px", paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
             <Link href="/" className="back-link">
-              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M19 12H5M12 5l-7 7 7 7"/>
+              </svg>
               Back to Home
             </Link>
           </div>
