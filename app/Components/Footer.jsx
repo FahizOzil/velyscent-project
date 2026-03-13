@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 
 // ─── Social Icons ─────────────────────────────────────────────────────
@@ -25,33 +26,46 @@ const InstagramIcon = () => (
 
 const footerLinks = [
   {
-    heading: "Categories",
-    links: ["Fashion", "Jewelry", "Sports", "Electronics", "Indoor"],
+    heading: "Collections",
+    links: [
+      { label: "Signature", href: "/shop?category=Signature" },
+      { label: "Luxury", href: "/shop?category=Luxury" },
+      { label: "Exclusive", href: "/shop?category=Exclusive" },
+      { label: "Classic", href: "/shop?category=Classic" },
+    ],
   },
   {
     heading: "Shopping",
-    links: ["Payments", "Delivery options", "Buyer protection"],
+    links: [
+      { label: "All Products", href: "/shop" },
+      { label: "Shipping & Returns", href: "/shipping-returns" },
+      { label: "FAQ", href: "/faq" },
+    ],
   },
   {
-    heading: "Customer care",
+    heading: "Customer Care",
     links: [
-      "Help center",
-      "Terms & Conditions",
-      "Privacy policy",
-      "Returns & refund",
-      "Survey & feedback",
+      { label: "Contact Us", href: "/contact" },
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Shipping & Returns", href: "/shipping-returns" },
     ],
   },
   {
     heading: "Pages",
-    links: ["About Us", "Shop", "Contact Us", "Blog"],
+    links: [
+      { label: "About Us", href: "/about" },
+      { label: "Shop", href: "/shop" },
+      { label: "Blog", href: "/blog" },
+      { label: "Contact Us", href: "/contact" },
+    ],
   },
 ];
 
 const socialIcons = [
-  { Icon: TwitterIcon,   label: "Twitter"   },
-  { Icon: FacebookIcon,  label: "Facebook"  },
-  { Icon: LinkedInIcon,  label: "LinkedIn"  },
+  { Icon: TwitterIcon, label: "Twitter" },
+  { Icon: FacebookIcon, label: "Facebook" },
+  { Icon: LinkedInIcon, label: "LinkedIn" },
   { Icon: InstagramIcon, label: "Instagram" },
 ];
 
@@ -276,8 +290,8 @@ export default function Footer() {
                   </h4>
                   <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: "12px" }}>
                     {col.links.map((link) => (
-                      <li key={link}>
-                        <a href="#" className="footer-link">{link}</a>
+                      <li key={link.label}>
+                        <Link href={link.href} className="footer-link">{link.label}</Link>
                       </li>
                     ))}
                   </ul>
@@ -304,7 +318,7 @@ export default function Footer() {
               letterSpacing: "0.04em",
             }}
           >
-            © 2025 Velyrascent Inc. All rights reserved
+          © {new Date().getFullYear()} Velyrascents. All rights reserved.
           </p>
         </div>
       </footer>
