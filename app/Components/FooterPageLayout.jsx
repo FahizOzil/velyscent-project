@@ -1,7 +1,6 @@
 // app/Components/FooterPageLayout.jsx
 import Link from "next/link";
 import Navbar from "@/app/Components/Navbar";
-
 export default function FooterPageLayout({ title, subtitle, children }) {
   return (
     <>
