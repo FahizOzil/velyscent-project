@@ -1,48 +1,26 @@
 // BestSellingSection.jsx
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useCartStore } from "@/store/cartStore";
 import { useWishlistStore } from "@/store/wishlistStore";
-
-// ─── REMOVED: const products = [...] ─────────────────────────────────
-// Featured products now come from Supabase via props.
-// In app/page.jsx (server component) do:
-//   const featured = await getFeaturedProducts(8);
-//   return <BestSellingSection products={featured} />
-
-const VISIBLE = 4;
 
 // ─── Product Card ─────────────────────────────────────────────────────
 function ProductCard({ product }) {
   const [hovered, setHovered] = useState(false);
 
-  // ── Zustand stores (was: no cart/wishlist wiring) ──
   const { addToCart } = useCartStore();
   const { toggleWishlist, isWishlisted } = useWishlistStore();
   const wished = isWishlisted(product.slug);
 
   const handleAddToCart = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart({
-      slug:    product.slug,
-      name:    product.name,
-      price:   String(product.price),
-      variant: product.variants?.[0]?.volume || "100ml",
-      qty:     1,
-    });
+    e.preventDefault(); e.stopPropagation();
+    addToCart({ slug: product.slug, name: product.name, price: String(product.price), variant: product.variants?.[0]?.volume || "100ml", qty: 1 });
   };
 
   const handleWishlist = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleWishlist({
-      slug:   product.slug,
-      name:   product.name,
-      price:  String(product.price),
-      volume: product.variants?.[0]?.volume || "100ml",
-    });
+    e.preventDefault(); e.stopPropagation();
+    toggleWishlist({ slug: product.slug, name: product.name, price: String(product.price), volume: product.variants?.[0]?.volume || "100ml" });
   };
 
   return (
@@ -61,16 +39,13 @@ function ProductCard({ product }) {
       }}
     >
       {/* Wishlist btn */}
-      <button
-        onClick={handleWishlist}
-        style={{
-          position: "absolute", top: "10px", right: "10px", zIndex: 3,
-          background: "rgba(10,8,6,0.7)", border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "50%", width: "30px", height: "30px",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", opacity: hovered || wished ? 1 : 0, transition: "opacity 0.2s",
-        }}
-      >
+      <button onClick={handleWishlist} style={{
+        position: "absolute", top: "10px", right: "10px", zIndex: 3,
+        background: "rgba(10,8,6,0.7)", border: "1px solid rgba(255,255,255,0.1)",
+        borderRadius: "50%", width: "30px", height: "30px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "pointer", opacity: hovered || wished ? 1 : 0, transition: "opacity 0.2s",
+      }}>
         <svg width="13" height="13" viewBox="0 0 24 24"
           fill={wished ? "#C4914F" : "none"}
           stroke={wished ? "#C4914F" : "rgba(255,255,255,0.7)"} strokeWidth="2">
@@ -85,17 +60,12 @@ function ProductCard({ product }) {
         display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
       }}>
         {product.images?.[0] ? (
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            style={{
-              width: "75%", height: "85%", objectFit: "contain",
-              transition: "transform 0.4s ease", transform: hovered ? "scale(1.06)" : "scale(1)",
-              filter: "drop-shadow(0 8px 32px rgba(196,145,79,0.25))",
-            }}
-          />
+          <img src={product.images[0]} alt={product.name} style={{
+            width: "75%", height: "85%", objectFit: "contain",
+            transition: "transform 0.4s ease", transform: hovered ? "scale(1.06)" : "scale(1)",
+            filter: "drop-shadow(0 8px 32px rgba(196,145,79,0.25))",
+          }} />
         ) : (
-          // Placeholder (remove once real images are added)
           <div style={{
             display: "flex", flexDirection: "column", alignItems: "center", gap: "10px",
             transition: "transform 0.4s ease", transform: hovered ? "scale(1.06)" : "scale(1)",
@@ -105,7 +75,7 @@ function ProductCard({ product }) {
               <circle cx="8.5" cy="8.5" r="1.5" />
               <path d="m21 15-5-5L5 21" />
             </svg>
-            <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "10px", letterSpacing: "0.15em", color: "rgba(196,145,79,0.35)", textTransform: "uppercase" }}>
+            <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "10px", letterSpacing: "0.15em", color: "rgba(196,145,79,0.35)", textTransform: "uppercase" }}>
               Product Image
             </span>
           </div>
@@ -117,15 +87,13 @@ function ProductCard({ product }) {
           background: "linear-gradient(to top, rgba(10,8,6,0.9) 0%, transparent 100%)",
           opacity: hovered ? 1 : 0, transition: "opacity 0.25s",
         }}>
-          <button
-            onClick={handleAddToCart}
-            style={{
-              width: "100%", padding: "10px", background: "#C4914F",
-              border: "none", borderRadius: "6px", color: "#fff",
-              fontFamily: "'Jost', sans-serif", fontSize: "11px",
-              fontWeight: 600, letterSpacing: "0.12em",
-              textTransform: "uppercase", cursor: "pointer",
-            }}
+          <button onClick={handleAddToCart} style={{
+            width: "100%", padding: "10px", background: "#C4914F",
+            border: "none", borderRadius: "6px", color: "#fff",
+            fontFamily: "'Jost',sans-serif", fontSize: "11px",
+            fontWeight: 600, letterSpacing: "0.12em",
+            textTransform: "uppercase", cursor: "pointer",
+          }}
             onMouseEnter={(e) => e.currentTarget.style.background = "#b07d3f"}
             onMouseLeave={(e) => e.currentTarget.style.background = "#C4914F"}
           >
@@ -137,17 +105,17 @@ function ProductCard({ product }) {
       {/* Info */}
       <div style={{ padding: "16px 16px 18px" }}>
         <p style={{
-          fontFamily: "'Jost', sans-serif", fontSize: "14px", fontWeight: 400,
+          fontFamily: "'Jost',sans-serif", fontSize: "14px", fontWeight: 400,
           color: "#FFFFFF", marginBottom: "6px", letterSpacing: "0.01em",
           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         }}>
           {product.name}
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "13px", fontWeight: 500, color: "#C4914F" }}>
-            $ {parseFloat(product.price).toFixed(2)}
+          <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "13px", fontWeight: 500, color: "#C4914F" }}>
+            ${parseFloat(product.price).toFixed(2)}
           </span>
-          <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>
+          <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>
             {product.variants?.[0]?.volume || "100ml"}
           </span>
         </div>
@@ -160,24 +128,24 @@ function ProductCard({ product }) {
 function ArrowBtn({ direction, onClick, disabled }) {
   const [hov, setHov] = useState(false);
   return (
-    <button
-      onClick={onClick} disabled={disabled}
+    <button onClick={onClick} disabled={disabled}
       onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
         position: "absolute", top: "50%", transform: "translateY(-50%)",
-        [direction === "left" ? "left" : "right"]: "-20px", zIndex: 10,
-        width: "40px", height: "40px", borderRadius: "50%",
+        [direction === "left" ? "left" : "right"]: "-16px", zIndex: 10,
+        width: "36px", height: "36px", borderRadius: "50%",
         border: "1px solid rgba(196,145,79,0.4)",
-        background: hov ? "rgba(196,145,79,0.15)" : "rgba(10,8,6,0.8)",
-        color: disabled ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.8)",
+        background: hov ? "rgba(196,145,79,0.15)" : "rgba(10,8,6,0.85)",
+        color: disabled ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.8)",
         display: "flex", alignItems: "center", justifyContent: "center",
         cursor: disabled ? "not-allowed" : "pointer", transition: "all 0.2s",
         backdropFilter: "blur(8px)",
+        borderColor: disabled ? "rgba(255,255,255,0.08)" : "rgba(196,145,79,0.4)",
       }}
     >
       {direction === "left"
-        ? <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
-        : <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
+        ? <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+        : <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" /></svg>
       }
     </button>
   );
@@ -186,11 +154,32 @@ function ArrowBtn({ direction, onClick, disabled }) {
 // ─── Best Selling Section ─────────────────────────────────────────────
 export default function BestSellingSection({ products = [] }) {
   const [startIndex, setStartIndex] = useState(0);
-  const maxIndex = Math.max(0, products.length - VISIBLE);
+
+  // Responsive: how many cards to show at once
+  const [visible, setVisible] = useState(4);
+
+  useEffect(() => {
+    function update() {
+      const w = window.innerWidth;
+      if (w <= 480)       setVisible(1);
+      else if (w <= 768)  setVisible(2);
+      else if (w <= 1024) setVisible(3);
+      else                setVisible(4);
+    }
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  // Reset startIndex if it goes out of range when screen resizes
+  const maxIndex = Math.max(0, products.length - visible);
+  useEffect(() => {
+    if (startIndex > maxIndex) setStartIndex(maxIndex);
+  }, [maxIndex, startIndex]);
 
   const prev = () => setStartIndex((i) => Math.max(0, i - 1));
   const next = () => setStartIndex((i) => Math.min(maxIndex, i + 1));
-  const visible = products.slice(startIndex, startIndex + VISIBLE);
+  const shown = products.slice(startIndex, startIndex + visible);
 
   if (products.length === 0) return null;
 
@@ -200,32 +189,40 @@ export default function BestSellingSection({ products = [] }) {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        @media (max-width: 900px) { .products-row { gap: 12px !important; flex-wrap: wrap !important; } .products-row a { flex: 0 0 calc(50% - 6px) !important; } }
-        @media (max-width: 560px) { .products-row a { flex: 0 0 100% !important; } }
+
+        .best-section-inner {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 clamp(20px, 5vw, 48px);
+        }
+
+        /* Push arrows outside on desktop, inside on small screens */
+        @media (max-width: 480px) {
+          .best-arrow-left  { left: 4px !important; }
+          .best-arrow-right { right: 4px !important; }
+        }
       `}</style>
 
-      <section style={{ width: "100%", background: "#0A0806", padding: "80px 0 96px" }}>
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 48px" }}>
+      <section style={{ width: "100%", background: "#0A0806", padding: "clamp(48px,7vw,80px) 0 clamp(56px,8vw,96px)" }}>
+        <div className="best-section-inner">
 
           <h2 style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "clamp(26px, 3vw, 40px)", fontWeight: 600,
-            color: "#C4914F", textAlign: "center", marginBottom: "48px",
+            fontFamily: "'Playfair Display',Georgia,serif",
+            fontSize: "clamp(24px, 3vw, 40px)", fontWeight: 600,
+            color: "#C4914F", textAlign: "center",
+            marginBottom: "clamp(28px,4vw,48px)",
             letterSpacing: "0.01em", animation: "fadeUp 0.8s ease forwards",
           }}>
-            Best selling products
+            Best Selling Products
           </h2>
 
-          <div style={{ position: "relative" }}>
-            <ArrowBtn direction="left" onClick={prev} disabled={startIndex === 0} />
+          {/* Slider */}
+          <div style={{ position: "relative", padding: "0 8px" }}>
+            <ArrowBtn direction="left"  onClick={prev} disabled={startIndex === 0} />
 
-            <div className="products-row" style={{ display: "flex", gap: "16px", overflow: "hidden" }}>
-              {visible.map((product) => (
-                <Link
-                  key={product.id}
-                  href={`/shop/${product.slug}`}
-                  style={{ flex: "0 0 calc(25% - 12px)", minWidth: 0, textDecoration: "none" }}
-                >
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${visible}, 1fr)`, gap: "clamp(10px, 1.5vw, 16px)", overflow: "hidden" }}>
+              {shown.map((product) => (
+                <Link key={product.id} href={`/shop/${product.slug}`} style={{ textDecoration: "none", minWidth: 0 }}>
                   <ProductCard product={product} />
                 </Link>
               ))}
@@ -236,18 +233,14 @@ export default function BestSellingSection({ products = [] }) {
 
           {/* Dot indicators */}
           {maxIndex > 0 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "36px" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "clamp(20px,3vw,36px)" }}>
               {Array.from({ length: maxIndex + 1 }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setStartIndex(i)}
-                  style={{
-                    width: i === startIndex ? "24px" : "8px", height: "8px",
-                    borderRadius: "4px",
-                    background: i === startIndex ? "#C4914F" : "rgba(255,255,255,0.2)",
-                    border: "none", cursor: "pointer", transition: "all 0.3s ease", padding: 0,
-                  }}
-                />
+                <button key={i} onClick={() => setStartIndex(i)} style={{
+                  width: i === startIndex ? "24px" : "8px", height: "8px",
+                  borderRadius: "4px",
+                  background: i === startIndex ? "#C4914F" : "rgba(255,255,255,0.2)",
+                  border: "none", cursor: "pointer", transition: "all 0.3s ease", padding: 0,
+                }} />
               ))}
             </div>
           )}
