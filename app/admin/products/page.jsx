@@ -1,19 +1,136 @@
 // app/admin/products/page.jsx
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
+
 
 const EMPTY_FORM = {
   name: "", slug: "", price: "", category: "",
   description: "", variants: '[{"id":1,"volume":"50ml"},{"id":2,"volume":"100ml"}]',
   rating: "5.0", review_count: "0", in_stock: true, featured: false,
+  images: [],
 };
 
 const CATEGORIES = ["Signature", "Classic", "Exclusive", "Luxury"];
 
-// ─── Auto-generate slug from name ────────────────────────────────────
 function toSlug(name) {
   return name.toLowerCase().trim().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
+// ─── Image Uploader ───────────────────────────────────────────────────
+function ImageUploader({ images, onChange }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver]   = useState(false);
+
+  const uploadFile = async (file) => {
+    if (!file || !file.type.startsWith("image/")) return null;
+    const ext  = file.name.split(".").pop();
+    const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage
+      .from("product-images")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+    if (error) { console.error(error); return null; }
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleFiles = async (files) => {
+    if (!files?.length) return;
+    setUploading(true);
+    const urls = [];
+    for (const file of Array.from(files)) {
+      const url = await uploadFile(file);
+      if (url) urls.push(url);
+    }
+    onChange([...images, ...urls]);
+    setUploading(false);
+  };
+
+  const removeImage = async (url) => {
+    // Extract path from URL and delete from storage
+    try {
+      const path = url.split("/product-images/")[1];
+      if (path) await supabase.storage.from("product-images").remove([path]);
+    } catch (e) { /* ignore */ }
+    onChange(images.filter((u) => u !== url));
+  };
+
+  return (
+    <div>
+      {/* Existing images */}
+      {images.length > 0 && (
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "12px" }}>
+          {images.map((url, i) => (
+            <div key={url} style={{ position: "relative", width: "80px", height: "80px", borderRadius: "6px", overflow: "hidden", border: "1px solid rgba(196,145,79,0.2)" }}>
+              <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {/* Remove btn */}
+              <button onClick={() => removeImage(url)} style={{
+                position: "absolute", top: "3px", right: "3px",
+                width: "18px", height: "18px", borderRadius: "50%",
+                background: "rgba(0,0,0,0.75)", border: "none",
+                color: "#fff", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "10px", lineHeight: 1,
+              }}>✕</button>
+              {i === 0 && (
+                <span style={{
+                  position: "absolute", bottom: "3px", left: "3px",
+                  background: "rgba(196,145,79,0.9)", borderRadius: "3px",
+                  fontFamily: "'Jost',sans-serif", fontSize: "8px",
+                  fontWeight: 600, color: "#fff", padding: "1px 5px",
+                  letterSpacing: "0.05em",
+                }}>MAIN</span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Drop zone */}
+      <div
+        onClick={() => !uploading && inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
+        style={{
+          border: `2px dashed ${dragOver ? "rgba(196,145,79,0.6)" : "rgba(196,145,79,0.2)"}`,
+          borderRadius: "8px", padding: "20px",
+          background: dragOver ? "rgba(196,145,79,0.06)" : "rgba(196,145,79,0.02)",
+          cursor: uploading ? "not-allowed" : "pointer",
+          textAlign: "center", transition: "all 0.2s",
+        }}
+      >
+        {uploading ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+            <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid rgba(196,145,79,0.2)", borderTopColor: "#C4914F", animation: "spin 0.7s linear infinite" }} />
+            <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>Uploading...</span>
+          </div>
+        ) : (
+          <>
+            <svg width="24" height="24" fill="none" stroke="rgba(196,145,79,0.5)" strokeWidth="1.5" viewBox="0 0 24 24" style={{ marginBottom: "8px" }}>
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>
+              Click to upload or drag & drop
+            </p>
+            <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.2)" }}>
+              PNG, JPG, WEBP — first image is the main product image
+            </p>
+          </>
+        )}
+      </div>
+
+      <input
+        ref={inputRef} type="file"
+        accept="image/*" multiple
+        style={{ display: "none" }}
+        onChange={(e) => handleFiles(e.target.files)}
+      />
+    </div>
+  );
 }
 
 // ─── Product Form Modal ───────────────────────────────────────────────
@@ -22,9 +139,10 @@ function ProductModal({ product, onClose, onSaved }) {
   const [form, setForm] = useState(isEdit ? {
     ...product,
     variants: JSON.stringify(product.variants || []),
+    images: product.images || [],
   } : EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError]   = useState("");
 
   const set = (key, val) => setForm((f) => ({ ...f, [key]: val }));
 
@@ -46,6 +164,7 @@ function ProductModal({ product, onClose, onSaved }) {
       variants, rating: parseFloat(form.rating) || 5.0,
       review_count: parseInt(form.review_count) || 0,
       in_stock: form.in_stock, featured: form.featured,
+      images: form.images,
     };
 
     let err;
@@ -78,8 +197,8 @@ function ProductModal({ product, onClose, onSaved }) {
     <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
       <div style={{
         background: "#131110", border: "1px solid rgba(196,145,79,0.2)",
-        borderRadius: "12px", width: "100%", maxWidth: "580px",
-        maxHeight: "90vh", overflowY: "auto", padding: "32px",
+        borderRadius: "12px", width: "100%", maxWidth: "600px",
+        maxHeight: "92vh", overflowY: "auto", padding: "32px",
         boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
@@ -90,6 +209,7 @@ function ProductModal({ product, onClose, onSaved }) {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+
           {/* Name */}
           <div style={{ gridColumn: "1 / -1" }}>
             <label style={labelStyle}>Name *</label>
@@ -135,6 +255,22 @@ function ProductModal({ product, onClose, onSaved }) {
             <textarea style={{ ...inputStyle, minHeight: "60px", fontFamily: "monospace", fontSize: "12px", resize: "vertical" }} value={form.variants} onChange={(e) => set("variants", e.target.value)}/>
           </div>
 
+          {/* ── Image Upload ── */}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={{ ...labelStyle, marginBottom: "10px" }}>
+              Product Images
+              {form.images.length > 0 && (
+                <span style={{ marginLeft: "8px", color: "rgba(196,145,79,0.6)", fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>
+                  ({form.images.length} uploaded)
+                </span>
+              )}
+            </label>
+            <ImageUploader
+              images={form.images}
+              onChange={(imgs) => set("images", imgs)}
+            />
+          </div>
+
           {/* Toggles */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
@@ -158,18 +294,18 @@ function ProductModal({ product, onClose, onSaved }) {
 
         <div style={{ display: "flex", gap: "12px", marginTop: "28px" }}>
           <button onClick={onClose} style={{
-            flex: 1, padding: "11px",
-            background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "6px", fontFamily: "'Jost',sans-serif",
-            fontSize: "13px", color: "rgba(255,255,255,0.5)", cursor: "pointer",
+            flex: 1, padding: "11px", background: "transparent",
+            border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px",
+            fontFamily: "'Jost',sans-serif", fontSize: "13px",
+            color: "rgba(255,255,255,0.5)", cursor: "pointer",
           }}>Cancel</button>
           <button onClick={handleSave} disabled={saving} style={{
             flex: 2, padding: "11px",
             background: saving ? "rgba(196,145,79,0.4)" : "#C4914F",
             border: "none", borderRadius: "6px",
             fontFamily: "'Jost',sans-serif", fontSize: "13px",
-            fontWeight: 600, color: "#fff", cursor: saving ? "not-allowed" : "pointer",
-            transition: "background 0.2s",
+            fontWeight: 600, color: "#fff",
+            cursor: saving ? "not-allowed" : "pointer", transition: "background 0.2s",
           }}>
             {saving ? "Saving..." : isEdit ? "Save Changes" : "Add Product"}
           </button>
@@ -184,6 +320,11 @@ function DeleteModal({ product, onClose, onDeleted }) {
   const [deleting, setDeleting] = useState(false);
   const confirm = async () => {
     setDeleting(true);
+    // Also delete images from storage
+    if (product.images?.length) {
+      const paths = product.images.map((url) => url.split("/product-images/")[1]).filter(Boolean);
+      if (paths.length) await supabase.storage.from("product-images").remove(paths);
+    }
     await supabase.from("products").delete().eq("id", product.id);
     onDeleted(product.id);
   };
@@ -192,7 +333,7 @@ function DeleteModal({ product, onClose, onDeleted }) {
       <div style={{ background: "#131110", border: "1px solid rgba(220,60,60,0.3)", borderRadius: "12px", padding: "32px", maxWidth: "400px", width: "100%", textAlign: "center" }}>
         <p style={{ fontFamily: "'Playfair Display',Georgia,serif", fontSize: "20px", color: "#FFFFFF", marginBottom: "10px" }}>Delete Product?</p>
         <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.5)", marginBottom: "24px" }}>
-          "<span style={{ color: "#C4914F" }}>{product.name}</span>" will be permanently deleted.
+          "<span style={{ color: "#C4914F" }}>{product.name}</span>" and all its images will be permanently deleted.
         </p>
         <div style={{ display: "flex", gap: "12px" }}>
           <button onClick={onClose} style={{ flex: 1, padding: "10px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>Cancel</button>
@@ -210,7 +351,7 @@ export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState("");
-  const [modal, setModal]       = useState(null); // null | { type: "add"|"edit"|"delete", product? }
+  const [modal, setModal]       = useState(null);
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -222,18 +363,16 @@ export default function AdminProducts() {
   }
 
   const toggleFeatured = async (product) => {
-    const updated = { ...product, featured: !product.featured };
-    setProducts((prev) => prev.map((p) => p.id === product.id ? updated : p));
+    setProducts((prev) => prev.map((p) => p.id === product.id ? { ...p, featured: !p.featured } : p));
     await supabase.from("products").update({ featured: !product.featured }).eq("id", product.id);
   };
 
   const toggleStock = async (product) => {
-    const updated = { ...product, in_stock: !product.in_stock };
-    setProducts((prev) => prev.map((p) => p.id === product.id ? updated : p));
+    setProducts((prev) => prev.map((p) => p.id === product.id ? { ...p, in_stock: !p.in_stock } : p));
     await supabase.from("products").update({ in_stock: !product.in_stock }).eq("id", product.id);
   };
 
-  const handleSaved = () => { setModal(null); fetchProducts(); };
+  const handleSaved   = () => { setModal(null); fetchProducts(); };
   const handleDeleted = (id) => { setProducts((prev) => prev.filter((p) => p.id !== id)); setModal(null); };
 
   const filtered = products.filter((p) => {
@@ -246,8 +385,8 @@ export default function AdminProducts() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Jost:wght@300;400;500;600&display=swap');
         @keyframes spin { to { transform: rotate(360deg); } }
-        input::placeholder,textarea::placeholder { color: rgba(255,255,255,0.2); }
-        input:focus,textarea:focus,select:focus { outline: none; border-color: rgba(196,145,79,0.4) !important; }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: rgba(196,145,79,0.4) !important; }
         select option { background: #1a1714; }
         .prod-row:hover { background: rgba(196,145,79,0.03) !important; }
       `}</style>
@@ -262,8 +401,7 @@ export default function AdminProducts() {
           display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px",
           background: "rgba(196,145,79,0.1)", border: "1px solid rgba(196,145,79,0.35)",
           borderRadius: "6px", fontFamily: "'Jost',sans-serif",
-          fontSize: "13px", fontWeight: 500, color: "#C4914F", cursor: "pointer",
-          transition: "all 0.2s",
+          fontSize: "13px", fontWeight: 500, color: "#C4914F", cursor: "pointer", transition: "all 0.2s",
         }}>
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Product
@@ -294,7 +432,7 @@ export default function AdminProducts() {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-                  {["Product", "Category", "Price", "Rating", "Featured", "Stock", "Actions"].map((h) => (
+                  {["Product", "Category", "Price", "Rating", "Images", "Featured", "Stock", "Actions"].map((h) => (
                     <th key={h} style={{ padding: "12px 16px", fontFamily: "'Jost',sans-serif", fontSize: "11px", fontWeight: 500, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.08em", textAlign: "left" }}>{h}</th>
                   ))}
                 </tr>
@@ -302,25 +440,46 @@ export default function AdminProducts() {
               <tbody>
                 {filtered.map((product) => (
                   <tr key={product.id} className="prod-row" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s" }}>
+
                     {/* Name + slug */}
                     <td style={{ padding: "14px 16px" }}>
-                      <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "14px", fontWeight: 500, color: "#FFFFFF", marginBottom: "2px" }}>{product.name}</p>
-                      <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{product.slug}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        {/* Thumbnail */}
+                        <div style={{ width: "36px", height: "36px", borderRadius: "6px", overflow: "hidden", flexShrink: 0, background: "#0e0c0a", border: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {product.images?.[0] ? (
+                            <img src={product.images[0]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }}/>
+                          ) : (
+                            <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" viewBox="0 0 24 24">
+                              <rect x="3" y="3" width="18" height="18" rx="2"/>
+                              <circle cx="8.5" cy="8.5" r="1.5"/>
+                              <path d="m21 15-5-5L5 21"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div>
+                          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "14px", fontWeight: 500, color: "#FFFFFF", marginBottom: "2px" }}>{product.name}</p>
+                          <p style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>{product.slug}</p>
+                        </div>
+                      </div>
                     </td>
 
                     {/* Category */}
-                    <td style={{ padding: "14px 16px", fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.5)" }}>
-                      {product.category || "—"}
-                    </td>
+                    <td style={{ padding: "14px 16px", fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.5)" }}>{product.category || "—"}</td>
 
                     {/* Price */}
-                    <td style={{ padding: "14px 16px", fontFamily: "'Jost',sans-serif", fontSize: "13px", fontWeight: 500, color: "#C4914F" }}>
-                      ${parseFloat(product.price).toFixed(2)}
-                    </td>
+                    <td style={{ padding: "14px 16px", fontFamily: "'Jost',sans-serif", fontSize: "13px", fontWeight: 500, color: "#C4914F" }}>${parseFloat(product.price).toFixed(2)}</td>
 
                     {/* Rating */}
-                    <td style={{ padding: "14px 16px", fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>
-                      ★ {parseFloat(product.rating || 5).toFixed(1)}
+                    <td style={{ padding: "14px 16px", fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>★ {parseFloat(product.rating || 5).toFixed(1)}</td>
+
+                    {/* Image count */}
+                    <td style={{ padding: "14px 16px" }}>
+                      <span style={{
+                        fontFamily: "'Jost',sans-serif", fontSize: "12px",
+                        color: product.images?.length ? "#3ecfa0" : "rgba(255,255,255,0.25)",
+                      }}>
+                        {product.images?.length || 0} photo{product.images?.length !== 1 ? "s" : ""}
+                      </span>
                     </td>
 
                     {/* Featured toggle */}
@@ -354,21 +513,11 @@ export default function AdminProducts() {
                     {/* Actions */}
                     <td style={{ padding: "14px 16px" }}>
                       <div style={{ display: "flex", gap: "8px" }}>
-                        <button onClick={() => setModal({ type: "edit", product })} style={{
-                          padding: "5px 12px", background: "transparent",
-                          border: "1px solid rgba(255,255,255,0.1)", borderRadius: "5px",
-                          fontFamily: "'Jost',sans-serif", fontSize: "11px",
-                          color: "rgba(255,255,255,0.5)", cursor: "pointer", transition: "all 0.2s",
-                        }}
+                        <button onClick={() => setModal({ type: "edit", product })} style={{ padding: "5px 12px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "5px", fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.5)", cursor: "pointer", transition: "all 0.2s" }}
                           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(196,145,79,0.4)"; e.currentTarget.style.color = "#C4914F"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
                         >Edit</button>
-                        <button onClick={() => setModal({ type: "delete", product })} style={{
-                          padding: "5px 12px", background: "transparent",
-                          border: "1px solid rgba(255,255,255,0.1)", borderRadius: "5px",
-                          fontFamily: "'Jost',sans-serif", fontSize: "11px",
-                          color: "rgba(255,255,255,0.5)", cursor: "pointer", transition: "all 0.2s",
-                        }}
+                        <button onClick={() => setModal({ type: "delete", product })} style={{ padding: "5px 12px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "5px", fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.5)", cursor: "pointer", transition: "all 0.2s" }}
                           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(220,60,60,0.4)"; e.currentTarget.style.color = "#f07070"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}
                         >Delete</button>
@@ -383,9 +532,9 @@ export default function AdminProducts() {
       </div>
 
       {/* Modals */}
-      {modal?.type === "add"    && <ProductModal product={null}         onClose={() => setModal(null)} onSaved={handleSaved}/>}
-      {modal?.type === "edit"   && <ProductModal product={modal.product} onClose={() => setModal(null)} onSaved={handleSaved}/>}
-      {modal?.type === "delete" && <DeleteModal  product={modal.product} onClose={() => setModal(null)} onDeleted={handleDeleted}/>}
+      {modal?.type === "add"    && <ProductModal product={null}          onClose={() => setModal(null)} onSaved={handleSaved}/>}
+      {modal?.type === "edit"   && <ProductModal product={modal.product}  onClose={() => setModal(null)} onSaved={handleSaved}/>}
+      {modal?.type === "delete" && <DeleteModal  product={modal.product}  onClose={() => setModal(null)} onDeleted={handleDeleted}/>}
     </>
   );
 }
