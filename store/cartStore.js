@@ -7,24 +7,21 @@ export const useCartStore = create(
       items: [],
 
       // Add item to cart
-      addToCart: (product) => {
-        const items = get().items;
-        const existing = items.find(
-          (i) => i.slug === product.slug && i.variant === product.variant
-        );
-        if (existing) {
-          // increase qty if already in cart
-          set({
-            items: items.map((i) =>
-              i.slug === product.slug && i.variant === product.variant
-                ? { ...i, qty: i.qty + 1 }
-                : i
-            ),
-          });
-        } else {
-          set({ items: [...items, { ...product, qty: 1 }] });
-        }
-      },
+     addToCart: (item) => set((state) => {
+  const existing = state.items.find(
+    (i) => i.slug === item.slug && i.variant === item.variant
+  );
+  if (existing) {
+    return {
+      items: state.items.map((i) =>
+        i.slug === item.slug && i.variant === item.variant
+          ? { ...i, qty: i.qty + item.qty }
+          : i
+      ),
+    };
+  }
+  return { items: [...state.items, { ...item, image: item.image || "" }] };
+}),
 
       // Remove item
       removeFromCart: (slug, variant) => {

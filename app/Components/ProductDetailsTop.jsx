@@ -18,35 +18,29 @@ function Stars({ rating, size = 16 }) {
   );
 }
 
-// ─── Product Details Top ──────────────────────────────────────────────
-// ✅ FIXED: receives full `product` object from page.jsx (Supabase data)
-//    OLD: export default function ProductDetailsTop({ slug }) { const product = productsData[slug] }
-//    NEW: export default function ProductDetailsTop({ product }) { ... }
 export default function ProductDetailsTop({ product }) {
 
   const { addToCart } = useCartStore();
   const { toggleWishlist, isWishlisted } = useWishlistStore();
 
   const [selectedVariant, setSelectedVariant] = useState(0);
-  const [qty, setQty] = useState(1);
+  const [qty, setQty]           = useState(1);
   const [activeImage, setActiveImage] = useState(0);
-  const [addedToBag, setAddedToBag] = useState(false);
+  const [addedToBag, setAddedToBag]   = useState(false);
 
-  // Guard — should never hit this since page.jsx calls notFound() first
   if (!product) return (
     <div style={{
       color: "rgba(255,255,255,0.5)", textAlign: "center",
-      padding: "120px 0", fontFamily: "'Jost', sans-serif",
+      padding: "120px 0", fontFamily: "'Jost',sans-serif",
       fontSize: "16px", background: "#0A0806", minHeight: "60vh",
     }}>
       Product not found.
     </div>
   );
 
-  // Normalise variants — Supabase stores as JSON array
   const variants = Array.isArray(product.variants) ? product.variants : [];
-
-  const wished = isWishlisted(product.slug);
+  const images   = Array.isArray(product.images)   ? product.images   : [];
+  const wished   = isWishlisted(product.slug);
 
   const handleAddToBag = () => {
     addToCart({
@@ -54,6 +48,7 @@ export default function ProductDetailsTop({ product }) {
       name:    product.name,
       price:   String(product.price),
       variant: variants[selectedVariant]?.volume || "100ml",
+      image:   product.images?.[0] || "",
       volume:  variants[selectedVariant]?.volume || "100ml",
       qty,
     });
@@ -66,12 +61,10 @@ export default function ProductDetailsTop({ product }) {
       slug:   product.slug,
       name:   product.name,
       price:  String(product.price),
+      image:  product.images?.[0] || "",
       volume: variants[selectedVariant]?.volume || "100ml",
     });
   };
-
-  // Images array — Supabase stores as JSON array (may be empty while no images yet)
-  const images = Array.isArray(product.images) ? product.images : [];
 
   return (
     <>
@@ -96,25 +89,20 @@ export default function ProductDetailsTop({ product }) {
             {["Home", "Products", product.name].map((crumb, i, arr) => (
               <span key={crumb} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <a href={i === 0 ? "/" : i === 1 ? "/shop" : "#"} style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "12px",
+                  fontFamily: "'Jost',sans-serif", fontSize: "12px",
                   color: i === arr.length - 1 ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)",
                   textDecoration: "none", transition: "color 0.2s",
                 }}
                   onMouseEnter={(e) => e.currentTarget.style.color = "#C4914F"}
                   onMouseLeave={(e) => e.currentTarget.style.color = i === arr.length - 1 ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.35)"}
-                >
-                  {crumb}
-                </a>
+                >{crumb}</a>
                 {i < arr.length - 1 && <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px" }}>/</span>}
               </span>
             ))}
           </div>
 
           {/* Main grid */}
-          <div className="pdp-grid" style={{
-            display: "grid", gridTemplateColumns: "1fr 1fr",
-            gap: "64px", alignItems: "start",
-          }}>
+          <div className="pdp-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "start" }}>
 
             {/* ── Left: Image gallery ── */}
             <div className="pdp-image-col" style={{ animation: "fadeUp 0.8s ease forwards" }}>
@@ -126,23 +114,18 @@ export default function ProductDetailsTop({ product }) {
                 position: "relative", overflow: "hidden", marginBottom: "16px",
               }}>
                 {images[activeImage] ? (
-                  <img
-                    src={images[activeImage]}
-                    alt={product.name}
-                    style={{
-                      width: "70%", height: "85%", objectFit: "contain",
-                      filter: "drop-shadow(0 16px 48px rgba(196,145,79,0.3))",
-                    }}
-                  />
+                  <img src={images[activeImage]} alt={product.name} style={{
+                    width: "70%", height: "85%", objectFit: "contain",
+                    filter: "drop-shadow(0 16px 48px rgba(196,145,79,0.3))",
+                  }} />
                 ) : (
-                  // Placeholder until real images are uploaded
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
                     <svg width="44" height="44" fill="none" stroke="rgba(196,145,79,0.3)" strokeWidth="1.2" viewBox="0 0 24 24">
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <path d="m21 15-5-5L5 21" />
                     </svg>
-                    <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "10px", letterSpacing: "0.2em", color: "rgba(196,145,79,0.3)", textTransform: "uppercase" }}>
+                    <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "10px", letterSpacing: "0.2em", color: "rgba(196,145,79,0.3)", textTransform: "uppercase" }}>
                       Product Image {activeImage + 1}
                     </span>
                   </div>
@@ -154,7 +137,7 @@ export default function ProductDetailsTop({ product }) {
                 }} />
               </div>
 
-              {/* Dots — based on images array, fallback to variants count */}
+              {/* Dots */}
               <div style={{ display: "flex", justifyContent: "center", gap: "8px" }}>
                 {(images.length > 0 ? images : variants).map((_, i) => (
                   <button key={i} onClick={() => setActiveImage(i)} style={{
@@ -172,8 +155,8 @@ export default function ProductDetailsTop({ product }) {
 
               {/* Name */}
               <h1 style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "clamp(26px, 3vw, 38px)", fontWeight: 700,
+                fontFamily: "'Playfair Display',Georgia,serif",
+                fontSize: "clamp(26px,3vw,38px)", fontWeight: 700,
                 color: "#FFFFFF", marginBottom: "20px",
                 letterSpacing: "0.01em", lineHeight: 1.2,
               }}>
@@ -182,7 +165,7 @@ export default function ProductDetailsTop({ product }) {
 
               {/* Description */}
               <p style={{
-                fontFamily: "'Jost', sans-serif", fontSize: "14px",
+                fontFamily: "'Jost',sans-serif", fontSize: "14px",
                 fontWeight: 300, color: "rgba(255,255,255,0.58)",
                 lineHeight: 1.8, marginBottom: "20px",
               }}>
@@ -192,19 +175,17 @@ export default function ProductDetailsTop({ product }) {
               {/* Rating */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px" }}>
                 <Stars rating={Math.round(product.rating || 5)} />
-                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
+                <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>
                   ({product.review_count || 0})
                 </span>
                 <a href="#reviews" style={{
-                  fontFamily: "'Jost', sans-serif", fontSize: "12px",
+                  fontFamily: "'Jost',sans-serif", fontSize: "12px",
                   color: "rgba(255,255,255,0.4)", textDecoration: "underline",
                   textUnderlineOffset: "3px", transition: "color 0.2s",
                 }}
                   onMouseEnter={(e) => e.currentTarget.style.color = "#C4914F"}
                   onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.4)"}
-                >
-                  Reviews and Ratings
-                </a>
+                >Reviews and Ratings</a>
               </div>
 
               {/* Volume variants */}
@@ -234,7 +215,7 @@ export default function ProductDetailsTop({ product }) {
                         </svg>
                       </div>
                       <span style={{
-                        fontFamily: "'Jost', sans-serif", fontSize: "11px",
+                        fontFamily: "'Jost',sans-serif", fontSize: "11px",
                         color: selectedVariant === i ? "#C4914F" : "rgba(255,255,255,0.5)",
                         transition: "color 0.2s",
                       }}>
@@ -245,39 +226,23 @@ export default function ProductDetailsTop({ product }) {
                 </div>
               )}
 
-              {/* Price */}
+              {/* ── Price in PKR ── */}
               <p style={{
-                fontFamily: "'Jost', sans-serif", fontSize: "26px",
+                fontFamily: "'Jost',sans-serif", fontSize: "26px",
                 fontWeight: 600, color: "#C4914F",
                 marginBottom: "28px", letterSpacing: "0.02em",
               }}>
-                $ {parseFloat(product.price).toFixed(2)}
+                PKR {parseFloat(product.price).toLocaleString()}
               </p>
 
               {/* Qty + Wishlist */}
               <div style={{ display: "flex", alignItems: "center", gap: "20px", marginBottom: "20px" }}>
-                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>Qty</span>
+                <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "13px", color: "rgba(255,255,255,0.6)" }}>Qty</span>
 
-                <div style={{
-                  display: "flex", alignItems: "center",
-                  border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", overflow: "hidden",
-                }}>
-                  <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))} style={{
-                    width: "36px", height: "36px", background: "transparent",
-                    border: "none", borderRight: "1px solid rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s",
-                  }}>−</button>
-                  <span style={{
-                    width: "40px", textAlign: "center",
-                    fontFamily: "'Jost', sans-serif", fontSize: "14px", fontWeight: 500, color: "#FFFFFF",
-                  }}>{qty}</span>
-                  <button className="qty-btn" onClick={() => setQty((q) => q + 1)} style={{
-                    width: "36px", height: "36px", background: "transparent",
-                    border: "none", borderLeft: "1px solid rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s",
-                  }}>+</button>
+                <div style={{ display: "flex", alignItems: "center", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", overflow: "hidden" }}>
+                  <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))} style={{ width: "36px", height: "36px", background: "transparent", border: "none", borderRight: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>−</button>
+                  <span style={{ width: "40px", textAlign: "center", fontFamily: "'Jost',sans-serif", fontSize: "14px", fontWeight: 500, color: "#FFFFFF" }}>{qty}</span>
+                  <button className="qty-btn" onClick={() => setQty((q) => q + 1)} style={{ width: "36px", height: "36px", background: "transparent", border: "none", borderLeft: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", fontSize: "16px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>+</button>
                 </div>
 
                 {/* Wishlist */}
@@ -285,7 +250,7 @@ export default function ProductDetailsTop({ product }) {
                   display: "flex", alignItems: "center", gap: "6px",
                   background: "transparent", border: "none",
                   color: wished ? "#C4914F" : "rgba(255,255,255,0.6)",
-                  fontFamily: "'Jost', sans-serif", fontSize: "13px",
+                  fontFamily: "'Jost',sans-serif", fontSize: "13px",
                   cursor: "pointer", transition: "color 0.2s",
                 }}>
                   <span>Wish list</span>
@@ -303,7 +268,7 @@ export default function ProductDetailsTop({ product }) {
                 background: addedToBag ? "#8a6535" : "transparent",
                 border: "1px solid #C4914F", borderRadius: "6px",
                 color: addedToBag ? "#fff" : "#C4914F",
-                fontFamily: "'Jost', sans-serif", fontSize: "14px",
+                fontFamily: "'Jost',sans-serif", fontSize: "14px",
                 fontWeight: 600, letterSpacing: "0.08em",
                 textTransform: "uppercase", cursor: "pointer",
                 transition: "all 0.25s ease", marginBottom: "16px",
@@ -317,15 +282,10 @@ export default function ProductDetailsTop({ product }) {
 
               {/* Afterpay */}
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <div style={{
-                  background: "#B2FCE4", borderRadius: "4px", padding: "3px 8px",
-                  display: "flex", alignItems: "center", gap: "2px",
-                }}>
-                  <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "11px", fontWeight: 700, color: "#000" }}>
-                    afterpay ⚡
-                  </span>
+                <div style={{ background: "#B2FCE4", borderRadius: "4px", padding: "3px 8px", display: "flex", alignItems: "center", gap: "2px" }}>
+                  <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", fontWeight: 700, color: "#000" }}>afterpay ⚡</span>
                 </div>
-                <span style={{ fontFamily: "'Jost', sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
+                <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 300 }}>
                   Shop now and pay later with 4 payments
                 </span>
               </div>

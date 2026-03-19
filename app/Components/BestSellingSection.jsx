@@ -15,12 +15,12 @@ function ProductCard({ product }) {
 
   const handleAddToCart = (e) => {
     e.preventDefault(); e.stopPropagation();
-    addToCart({ slug: product.slug, name: product.name, price: String(product.price), variant: product.variants?.[0]?.volume || "100ml", qty: 1 });
+    addToCart({ slug: product.slug, name: product.name, price: String(product.price), variant: product.variants?.[0]?.volume || "100ml", image: product.images?.[0] || "", qty: 1 });
   };
 
   const handleWishlist = (e) => {
     e.preventDefault(); e.stopPropagation();
-    toggleWishlist({ slug: product.slug, name: product.name, price: String(product.price), volume: product.variants?.[0]?.volume || "100ml" });
+    toggleWishlist({ slug: product.slug, name: product.name, price: String(product.price), volume: product.variants?.[0]?.volume || "100ml", image: product.images?.[0] || "" });
   };
 
   return (
@@ -113,7 +113,7 @@ function ProductCard({ product }) {
         </p>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "13px", fontWeight: 500, color: "#C4914F" }}>
-            ${parseFloat(product.price).toFixed(2)}
+            PKR {parseFloat(product.price).toLocaleString()}
           </span>
           <span style={{ fontFamily: "'Jost',sans-serif", fontSize: "11px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em" }}>
             {product.variants?.[0]?.volume || "100ml"}
@@ -154,8 +154,6 @@ function ArrowBtn({ direction, onClick, disabled }) {
 // ─── Best Selling Section ─────────────────────────────────────────────
 export default function BestSellingSection({ products = [] }) {
   const [startIndex, setStartIndex] = useState(0);
-
-  // Responsive: how many cards to show at once
   const [visible, setVisible] = useState(4);
 
   useEffect(() => {
@@ -171,14 +169,13 @@ export default function BestSellingSection({ products = [] }) {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Reset startIndex if it goes out of range when screen resizes
   const maxIndex = Math.max(0, products.length - visible);
   useEffect(() => {
     if (startIndex > maxIndex) setStartIndex(maxIndex);
   }, [maxIndex, startIndex]);
 
-  const prev = () => setStartIndex((i) => Math.max(0, i - 1));
-  const next = () => setStartIndex((i) => Math.min(maxIndex, i + 1));
+  const prev  = () => setStartIndex((i) => Math.max(0, i - 1));
+  const next  = () => setStartIndex((i) => Math.min(maxIndex, i + 1));
   const shown = products.slice(startIndex, startIndex + visible);
 
   if (products.length === 0) return null;
@@ -189,14 +186,7 @@ export default function BestSellingSection({ products = [] }) {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Jost:wght@300;400;500;600&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-
-        .best-section-inner {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 clamp(20px, 5vw, 48px);
-        }
-
-        /* Push arrows outside on desktop, inside on small screens */
+        .best-section-inner { max-width: 1200px; margin: 0 auto; padding: 0 clamp(20px, 5vw, 48px); }
         @media (max-width: 480px) {
           .best-arrow-left  { left: 4px !important; }
           .best-arrow-right { right: 4px !important; }
@@ -216,7 +206,6 @@ export default function BestSellingSection({ products = [] }) {
             Best Selling Products
           </h2>
 
-          {/* Slider */}
           <div style={{ position: "relative", padding: "0 8px" }}>
             <ArrowBtn direction="left"  onClick={prev} disabled={startIndex === 0} />
 
@@ -231,7 +220,6 @@ export default function BestSellingSection({ products = [] }) {
             <ArrowBtn direction="right" onClick={next} disabled={startIndex >= maxIndex} />
           </div>
 
-          {/* Dot indicators */}
           {maxIndex > 0 && (
             <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "clamp(20px,3vw,36px)" }}>
               {Array.from({ length: maxIndex + 1 }).map((_, i) => (
