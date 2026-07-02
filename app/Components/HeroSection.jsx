@@ -182,34 +182,16 @@ export default function HeroSection() {
               <div className="hero-ring-1" />
               <div className="hero-ring-2" />
 
-              {/*
-                Replace with your actual image:
+              
+                {/* Replace with your actual image: */}
                 <img
-                  src="/images/hero-bottle.png"
+                  src="/product1.png"
                   alt="Velyscent Perfume Bottle"
                   style={{ width: "100%", maxWidth: "460px", position: "relative", zIndex: 2,
                            filter: "drop-shadow(0 40px 80px rgba(196,145,79,0.35))" }}
                 />
-              */}
-              <div className="hero-placeholder" style={{
-                width: "380px", height: "460px",
-                position: "relative", zIndex: 2,
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center",
-                border: "2px dashed rgba(196,145,79,0.3)", borderRadius: "12px",
-                background: "rgba(196,145,79,0.04)",
-                color: "rgba(196,145,79,0.5)",
-                fontFamily: "'Jost',sans-serif", fontSize: "13px",
-                letterSpacing: "0.08em", gap: "10px",
-              }}>
-                <svg width="40" height="40" fill="none" stroke="rgba(196,145,79,0.5)" strokeWidth="1.2" viewBox="0 0 24 24">
-                  <rect x="3" y="3" width="18" height="18" rx="2" />
-                  <circle cx="8.5" cy="8.5" r="1.5" />
-                  <path d="m21 15-5-5L5 21" />
-                </svg>
-                HERO BOTTLE IMAGE
-              </div>
-            </div>
+                
+                </div>
 
           </div>
         </div>

@@ -6,43 +6,43 @@ const collections = [
     id: 1,
     name: "Designer Delights Collection",
     gridArea: "a",
-    // img: "/images/collections/designer-delights.jpg",
+    img: "/product1.png",
   },
   {
     id: 2,
     name: "Travel Essentials Collection",
     gridArea: "b",
-    // img: "/images/collections/travel-essentials.jpg",
+    img: "/product2.png",
   },
   {
     id: 3,
     name: "Special Occasions Collection",
     gridArea: "c",
-    // img: "/images/collections/special-occasions.jpg",
+    img: "/product3.png",
   },
   {
     id: 4,
     name: "Seasonal Sensations Collection",
     gridArea: "d",
-    // img: "/images/collections/seasonal-sensations.jpg",
+    img: "/product4.png",
   },
   {
     id: 5,
     name: "Vintage Treasures Collection",
     gridArea: "e",
-    // img: "/images/collections/vintage-treasures.jpg",
+    img: "/product2.png",
   },
   {
     id: 6,
     name: "Limited Edition Treasures",
     gridArea: "f",
-    // img: "/images/collections/limited-edition.jpg",
+    img: "/product6.png",
   },
   {
     id: 7,
     name: "Modern Classics Collection",
     gridArea: "g",
-    // img: "/images/collections/modern-classics.jpg",
+    img: "/product4.png",
   },
 ];
 
@@ -64,8 +64,8 @@ function CollectionCard({ item, height }) {
         background: "#141210",
       }}
     >
-      {/*
-        Replace the placeholder below with:
+      
+        {/* Replace the placeholder below with: */}
         <img
           src={item.img}
           alt={item.name}
@@ -73,7 +73,7 @@ function CollectionCard({ item, height }) {
                    objectFit:'cover', transition:'transform 0.5s ease',
                    transform: hovered ? 'scale(1.06)' : 'scale(1)' }}
         />
-      */}
+     
       <div
         style={{
           position: "absolute",

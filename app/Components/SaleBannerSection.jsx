@@ -34,15 +34,15 @@ export default function SaleBannerSection() {
           background: "#0D0B09",
         }}
       >
-        {/*
-          BACKGROUND IMAGE — Replace div below with:
+        
+          {/* BACKGROUND IMAGE — Replace div below with: */}
           <img
-            src="/images/sale-banner-bg.jpg"
+            src="/product2.png"
             alt=""
             style={{ position:'absolute', inset:0, width:'100%', height:'100%',
                      objectFit:'cover', opacity:0.55, zIndex:0 }}
           />
-        */}
+       
         <div
           style={{
             position: "absolute",
@@ -196,10 +196,10 @@ export default function SaleBannerSection() {
               animation: "fadeSlideRight 0.9s ease forwards",
             }}
           >
-            {/*
-              Replace the placeholder below with:
+            
+              {/* Replace the placeholder below with: */}
               <img
-                src="/images/sale-bottle.png"
+                src="/product2.png"
                 alt="Sale Perfume Bottle"
                 style={{
                   maxHeight: '320px',
@@ -208,40 +208,8 @@ export default function SaleBannerSection() {
                   filter: 'drop-shadow(0 20px 60px rgba(0,0,0,0.7))',
                 }}
               />
-            */}
-            <div style={{
-              width: "220px",
-              height: "300px",
-              border: "2px dashed rgba(196,145,79,0.25)",
-              borderRadius: "8px",
-              background: "rgba(196,145,79,0.03)",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "10px",
-            }}>
-              <svg width="36" height="36" fill="none" stroke="rgba(196,145,79,0.35)"
-                strokeWidth="1.2" viewBox="0 0 24 24">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="m21 15-5-5L5 21" />
-              </svg>
-              <span style={{
-                fontFamily: "'Jost', sans-serif",
-                fontSize: "10px",
-                letterSpacing: "0.15em",
-                color: "rgba(196,145,79,0.35)",
-                textTransform: "uppercase",
-                textAlign: "center",
-                padding: "0 16px",
-              }}>
-                Sale Bottle Image<br />
-                <span style={{ opacity: 0.6, fontSize: "9px" }}>
-                  {/* Replace with your product photo */}
-                </span>
-              </span>
-            </div>
+           
+           
           </div>
         </div>
 
